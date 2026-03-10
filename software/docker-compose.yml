@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  ros2:
+    build: .
+    container_name: robot_arm_ros2
+    volumes:
+      # Mount the local ros2_ws directory into the container's workspace
+      - ./ros2_ws:/ros2_ws
+      # (Optional) Map X11 socket strictly for GUI tools like RViz if needed on Linux:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=$DISPLAY
+      # - QT_X11_NO_MITSHM=1
+    network_mode: host
+    stdin_open: true # Equivalent to -i
+    tty: true        # Equivalent to -t
+    command: bash
