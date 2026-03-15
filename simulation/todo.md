@@ -1,17 +1,21 @@
 # Simulation Roadmap
 
-This folder contains kinematic models and visual simulation environments for testing without hardware.
+This document outlines the kinematic models and visual simulation environments for testing without hardware.
 
-## Epic: Kinematic Modeling
-- [ ] **DH Parameter Refinement**: Align `dh_solver.py` with the actual CAD dimensions.
-- [ ] **Forward Kinematics (FK)**: Finalize the Python FK solver for 6-DOF.
-- [ ] **Inverse Kinematics (IK)**: Implement an analytical or numerical IK solver for coordinate-based control.
+## DEVELOPMENT
+*Kinematic modeling and foundational simulation setup - can run parallel to physical prototyping.*
 
-## Epic: ROS 2 Visualization & URDF
-- [ ] **URDF Model**: Create a Unified Robot Description Format file for the arm links and joints.
-- [ ] **Visual Assets**: Convert CAD STLs to simplified meshes for RViz2/Gazebo visualization.
-- [ ] **RViz2 Integration**: Create a launch file to visualize the arm joints and coordinate frames.
+- [ ] **DH Parameter Estimation**: Draft the Denavit-Hartenberg parameters based on preliminary CAD dimensions (`dh_solver.py`).
+- [ ] **Forward Kinematics (FK)**: Create a pure Python FK solver to validate coordinate transforms for the 6-DOF arm.
+- [ ] **Inverse Kinematics (IK) Prototyping**: Implement and test analytical or Jacobian-based IK solvers on arbitrary points.
+- [ ] **URDF Drafting**: Create a basic URDF format file using primitive shapes (cylinders/boxes) to model the joint hierarchy.
+- [ ] **RViz2 Visualization**: Set up a ROS 2 launch file to visualize the primitive arm and TF coordinate frames.
 
-## Epic: Physics Simulation
-- [ ] **Gazebo/Ignition Setup**: Configure a physics world with gravity and collision models.
-- [ ] **Control Plugins**: Implement ROS 2 Control plugins to simulate stepper motor behavior in the physics engine.
+## INTEGRATION
+*Full physics simulation and digital twin matching - after finalized CAD and hardware.*
+
+- [ ] **URDF Refinement**: Extract actual physical properties (mass, center of mass, inertia tensors) from final CAD and update the URDF.
+- [ ] **Visual Assets Integration**: Export finished CAD parts to STLs, decimate them, and link them as visual meshes in the URDF.
+- [ ] **Gazebo/Ignition Setup**: Configure a physics world with precise joint friction, gravity, and collision models.
+- [ ] **ROS 2 Control Plugins**: Implement `ros2_control` hardware interfaces to simulate stepper motor dynamics (torque curves, microstepping behavior) in Gazebo.
+- [ ] **Digital Twin Validation**: Compare the physical robot's reach, joint limits, and movement speeds with the Gazebo simulation and tune the simulation parameters to match reality.

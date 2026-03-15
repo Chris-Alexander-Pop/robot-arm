@@ -1,18 +1,22 @@
 # Software Roadmap
 
-This folder contains the high-level control logic and ROS 2 workspace running on the Raspberry Pi.
+This document outlines the high-level control logic and ROS 2 workspace running on the Raspberry Pi.
 
-## Epic: ROS 2 Foundation
-- [ ] **Workspace Setup**: Finalize the package structure for `robot_core` and `robot_description`.
-- [ ] **STM32 Serial Bridge**: Implement a node that subscribes to joint commands and sends them to the firmware.
-- [ ] **Heartbeat System**: Implement a safety "heartbeat" between the Pi and STM32.
+## DEVELOPMENT
+*Core workspace setup, serial communication, and isolated logic - before having a fully built arm.*
 
-## Epic: Motion Planning
-- [ ] **MoveIt 2 Integration**: Configure MoveIt 2 for trajectory planning and collision avoidance.
-- [ ] **Point-to-Point Movement**: Implement service calls to move the end-effector to specific (X, Y, Z, R, P, Y) coordinates.
-- [ ] **Trajectory Execution**: Ensure smoothInterpolation of joint angles during complex movements.
+- [ ] **ROS 2 Workspace Setup**: Establish the package structure for `robot_core` and `robot_description`.
+- [ ] **Hardware Bridge Node**: Write a ROS 2 node to communicate via Serial/UART with the STM32 (test with a single motor first).
+- [ ] **Telemetry Pipeline**: Implement parsing of incoming serial data to publish joint states (encoders) to `/joint_states`.
+- [ ] **Safety & Heartbeat**: Implement a software watchdog/heartbeat node that monitors connection health between Pi and STM32.
+- [ ] **MoveIt 2 Configuration Generation**: Use the MoveIt Setup Assistant with the preliminary URDF to generate move groups and kinematics plugins.
 
-## Epic: Higher-Level Operations
-- [ ] **Pick-and-Place Logic**: Create a script/node for standard pick-and-place operation loops.
-- [ ] **Computer Vision Integration (Future)**: Setup OpenCV/Camera nodes for detecting objects to pick.
-- [ ] **Web Dashboard**: Create a simple web interface for manual teleoperation and state monitoring.
+## INTEGRATION
+*Full trajectory planning, advanced controls, and application layers - after the full arm is built and responsive.*
+
+- [ ] **MoveIt 2 Tuning**: Tune trajectory execution, allowed tolerances, and planning algorithms (e.g., OMPL) on the physical arm.
+- [ ] **Action Servers**: Implement complete `FollowJointTrajectory` action servers to smoothly interpolate paths between MoveIt and the STM32.
+- [ ] **Collision Avoidance**: Integrate octomap or static scene constraints to prevent the arm from hitting itself or the table.
+- [ ] **Task Space Control**: Implement high-level Python/C++ scripts to move the end-effector to precise Cartesian coordinates (pick-and-place routines).
+- [ ] **Web Dashboard**: Create a web interface (using rosbridge_suite) for manual teleoperation, E-stop triggers, and system diagnostics.
+- [ ] **Vision System (Future)**: Integrate OpenCV and a camera node to dynamically identify coordinates for grasping.

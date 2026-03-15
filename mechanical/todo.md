@@ -1,21 +1,24 @@
 # Mechanical Roadmap
 
-This folder contains the mechanical design files (CAD), 3D printing configurations, and assembly guides.
+This document outlines the mechanical design, CAD, 3D printing configurations, and assembly instructions.
 
-## Epic: CAD & Design
-- [ ] **Base & Joint 1**: Design high-torque base housing for NEMA 23 and thrust bearing.
-- [ ] **Shoulder (Joint 2)**: Design shoulder linkage and reinforcement for vertical lift.
-- [ ] **Arm Links & Transmission**: Design housing for NEMA 17s and GT2 belt tensioning systems.
-- [ ] **Wrist & End-Effector**: Design lightweight 2-DOF wrist and gripper/attachment interface.
+## DEVELOPMENT
+*Prototyping, dimension verification, and testing print tolerances - before full BOM procurement.*
 
-## Epic: Manufacturing & 3D Printing
-- [ ] **Material Testing**: Calibrate PETG settings for strength and dimensional accuracy (heat-set insert fit).
-- [ ] **Base Printing (Stage 1)**: Print Joint 1 components to verify NEMA 23 fit.
-- [ ] **Linkage Printing**: Print structural arm sections with high infill/wall count.
-- [ ] **Hardware Sourcing**: Procurement of M3/M4 bolts, 608ZZ bearings, and brass inserts.
+- [ ] **Gearbox Prototyping**: Test print and validate gear reduction designs (e.g., Cycloidal, Planetary, or Harmonic) for backlash, tolerances, and friction.
+- [ ] **Material Testing**: Calibrate PETG/ABS print settings for strength, layer adhesion, and dimensional accuracy for heat-set inserts.
+- [ ] **Motor Fitment Tests**: Print isolated mounts for NEMA 23, NEMA 17, and Servos to physically verify bolt holes, shaft lengths, and alignments using prototype motors.
+- [ ] **Bearing Tolerances**: Print test gauges to verify press-fit tolerances for 608ZZ bearings and thrust bearings.
+- [ ] **Base & Joint 1 CAD**: Design the high-torque base housing and thrust bearing integration.
+- [ ] **Shoulder (Joint 2) CAD**: Design shoulder linkage and structural reinforcement for vertical lift.
 
-## Epic: Mechanical Assembly
-- [ ] **Joint Assembly**: Install bearings and press-fit motors into printed housings.
-- [ ] **Belt Drive System**: Install pulleys and tension GT2 belts for Joints 3-6.
-- [ ] **Full Integration**: Final structural assembly and cable routing through internal channels.
-- [ ] **Static Stress Test**: Verify the arm doesn't deflect significantly under its own weight.
+## INTEGRATION
+*Final prints, sourcing, and assembly - after purchasing all hardware.*
+
+- [ ] **Mass Printing**: Print all structural arm sections, linkages, and housings with high infill/wall count.
+- [ ] **Hardware Sourcing**: Procurement of all M3/M4 bolts, nuts, bearings, belts, and brass inserts.
+- [ ] **Sub-assembly - Base & Shoulder**: Install bearings, press-fit motors, and assemble the primary lifting joints.
+- [ ] **Belt Drive System**: Install pulleys, route, and tension GT2 belts for the upper arm and wrist (Joints 3-6) if applicable.
+- [ ] **Cable Management**: Route power, encoder, and motor cables through the internal pathways of the linkages.
+- [ ] **End-Effector Integration**: Attach the 2-DOF wrist and modular gripper.
+- [ ] **Static Stress Test**: Verify the fully assembled arm doesn't deflect significantly or back-drive under its own weight when powered off.
