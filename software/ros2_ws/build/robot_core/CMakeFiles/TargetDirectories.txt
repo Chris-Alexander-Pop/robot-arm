@@ -1,9 +1,0 @@
-/ros2_ws/build/robot_core/CMakeFiles/uninstall.dir
-/ros2_ws/build/robot_core/CMakeFiles/robot_core_uninstall.dir
-/ros2_ws/build/robot_core/CMakeFiles/test.dir
-/ros2_ws/build/robot_core/CMakeFiles/edit_cache.dir
-/ros2_ws/build/robot_core/CMakeFiles/rebuild_cache.dir
-/ros2_ws/build/robot_core/CMakeFiles/list_install_components.dir
-/ros2_ws/build/robot_core/CMakeFiles/install.dir
-/ros2_ws/build/robot_core/CMakeFiles/install/local.dir
-/ros2_ws/build/robot_core/CMakeFiles/install/strip.dir
