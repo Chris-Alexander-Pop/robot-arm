@@ -7,9 +7,38 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+
+include_directories(include)
+
+add_library(robot_core_domain
+  src/domain/kinematics_solver.cpp
+  src/domain/trajectory_planner.cpp
+)
+
+target_include_directories(robot_core_domain PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+add_executable(hardware_bridge_node src/nodes/hardware_bridge_node.cpp)
+ament_target_dependencies(hardware_bridge_node rclcpp)
+target_link_libraries(hardware_bridge_node robot_core_domain)
+
+add_executable(planning_node src/nodes/planning_node.cpp)
+ament_target_dependencies(planning_node rclcpp)
+target_link_libraries(planning_node robot_core_domain)
+
+install(TARGETS
+  robot_core_domain
+  hardware_bridge_node
+  planning_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY include/
+  DESTINATION include/
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

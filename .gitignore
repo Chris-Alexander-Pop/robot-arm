@@ -1,0 +1,14 @@
+.tooling/
+.venv/
+
+# ROS/colcon artifacts
+software/ros2_ws/build/
+software/ros2_ws/install/
+software/ros2_ws/log/
+
+# Top-level/local colcon logs
+log/
+.log/
+
+# Generic log files
+*.log
