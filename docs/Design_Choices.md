@@ -11,9 +11,9 @@ This document records the key design decisions for the 6-DOF robot arm, focusing
 
 ## 1. Mechanical & Actuation
 
-### 1a. Cycloidal Drives at J1 (Base) and J2 (Shoulder)
+### 1a. Cycloidal Drives at J1–J4
 
-**Decision**: Use **3D-printable cycloidal drives** (with hardened steel dowel ring pins) at the two highest-torque joints.
+**Decision**: Use **3D-printable cycloidal drives** (PETG disk + hardened steel dowel ring pins) at all four driven joints (J1/J2 at 20:1, J3 at 15:1, J4 at 10:1).
 
 **Alternatives Considered**:
 
@@ -22,10 +22,10 @@ This document records the key design decisions for the 6-DOF robot arm, focusing
 | Planetary Gearbox (metal, off-shelf) | Very robust, no printing | Expensive (~$80–$150 per joint), heavy | ✗ |
 | Harmonic Drive | Near-zero backlash, compact | Extremely expensive (~$300+) | ✗ |
 | Worm Gear (3D printed) | Self-locking, cheap | High friction, low efficiency, no backdrivability | ✗ |
-| Timing Belt (multi-stage) | Cheap, printable | Can't achieve >~9:1 without huge pulley sizes | ✗ |
-| **Cycloidal Drive (3D printed + steel pins)** | Printable, 20:1 in one stage, high torque density, near-zero backlash | Requires PTFE grease, careful tolerances | **✓** |
+| Timing Belt only (J3) | Cheap, no extra housing | 3:1 belt = 2.4 Nm — **below the 3.27 Nm requirement** | ✗ |
+| **Cycloidal Drive (3D printed + steel pins)** | Printable, 10–20:1 in one stage, high torque density, near-zero backlash, uniform BOM | Requires PTFE grease, careful tolerances, eccentric vibration must be managed | **✓** |
 
-**Rationale**: The cycloidal drive achieves a 20:1 ratio in a package smaller than a fist. The ring gear pins are hardened steel M4 dowels — these cannot shear. Only the disk and housing are plastic, and they carry no shear stress directly. This gives the strength of metal gearing at a fraction of the cost.
+**Rationale**: The cycloidal drive achieves a high ratio in a package smaller than a fist. The ring gear pins are hardened steel M4 dowels — these cannot shear; only the PETG disk is consumable. Extending cycloidals to J3 and J4 resolves the torque shortfall (see `Calculations.md §1e`) and **unifies the entire drive system**: the same dowel pins, the same print profiles, and the same assembly procedure across all four joints, simplifying fabrication and spares.
 
 ---
 
@@ -51,17 +51,57 @@ The wrist joints do not need the high torque of a closed-loop system, so the ope
 
 ---
 
-### 1d. Folded / Parallel-Axis Motor Mounting for J3 (Optional)
+### 1d. Cycloidal Drive at J3 (Elbow) — 15:1
 
-**Decision**: Consider mounting the J3 (elbow) NEMA 17 **parallel to the upper arm link** and transmitting power via GT2 belt.
+**Decision**: Replace the originally considered GT2 belt drive at J3 with a **15:1 cycloidal drive** on the NEMA 17 (80 Ncm) motor.
 
-**Rationale**: If the motor sits at the elbow pivot point directly, its 280g mass acts at the end of the 280mm upper arm, adding torque to J2. By sliding it up the link toward the shoulder and using a belt, the motor's mass is moved closer to the J2 pivot, substantially reducing the effective lever arm. This same strategy is used by the BCN3D Moveo arm.
+**Why not belt?**
+The worst-case torque at J3 is **3.27 Nm**. A 3:1 GT2 belt drive (the practical maximum before pulleys become geometrically oversized) yields only `0.80 Nm × 3 = 2.40 Nm` — a shortfall of ~27%. Increasing to 4:1 is possible but results in a 64-tooth driven pulley that is physically larger than the NEMA 17 motor body, making packaging very difficult inside the upper arm link.
 
-**Trade-off**: Adds belt tension complexity and a second pulley. Belt stretch introduces positional hysteresis (~0.1°–0.2°). Accepted in exchange for reduced J2 torque demand.
+**Why 15:1 specifically?**
+- Yields `0.80 × 15 = 12.0 Nm` — a 3.67× safety factor over the 3.27 Nm requirement
+- 15 pins is a smaller, lighter housing than the 20-pin J1/J2 design, appropriate for the NEMA 17
+- 15:1 keeps motor input speed at a moderate RPM for typical joint velocities (below the estimated 1116 RPM structural resonance threshold)
+
+**Trade-off accepted**: The cycloidal housing adds ~50–80g to Link 1 (upper arm), slightly increasing J2 load. At the 20:1 reduction on J2, the 40 Nm effective output absorbs this easily.
 
 ---
 
-### 1e. PETG over PLA or ABS
+### 1e. Cycloidal Drive at J4 (Forearm Twist) — 10:1
+
+**Decision**: Use a **10:1 cycloidal drive** on the NEMA 17 (42 Ncm) motor at J4.
+
+**Is a gearbox even necessary at J4?** The gravity torque at J4 is near-zero (the rotation axis is roughly parallel to the forearm, so the distal mass creates no gravitational moment). However, a cycloidal drive at J4 is still chosen for three reasons:
+
+1. **Resolution**: Direct drive at 1/32 microstepping gives 0.056°/step. Through a 10:1 cycloidal, that becomes 0.0056°/step — 10× finer, enabling precise tool-roll positioning for orientation-sensitive pick-and-place.
+2. **Inertial damping**: The gear reduction lowers effective reflected inertia at the output, reducing oscillation after a direction reversal — important for a lightweight wrist assembly that has little natural damping.
+3. **Manufacturing uniformity**: Using the same ring pins, grease, and assembly procedure as J1/J2/J3 reduces the number of unique part types in the BOM.
+
+**Ratio choice**: 10:1 (10 pins, 9-lobe disk) is the smallest practical cycloidal ratio. Smaller ratios have poor conjugate tooth geometry. This is the minimum necessary to gain the resolution and damping benefits without adding unnecessary housing mass.
+
+---
+
+### 1f. Vibration Mitigation Strategy
+
+**Decision**: Implement a tiered vibration mitigation strategy across all cycloidal drives.
+
+**Why is vibration a concern?** Each cycloidal drive's eccentric cam (a 608ZZ bearing offset ~1mm from the motor shaft centreline) creates a rotating centrifugal imbalance force $F = m \cdot e \cdot \omega^2$. At 600 RPM motor input, this is ~79 mN per drive. With 4 drives on the arm, unmitigated vibration accumulates and is amplified at the end-effector.
+
+**Mitigation decisions (in priority order):**
+
+| Measure | Implementation | Cost | Joints |
+|:---|:---|:---:|:---|
+| **Counterweight disk** | Second 608ZZ at 180° on rear motor shaft | ~$2/joint | J1–J4 (mandatory) |
+| **Twin-disk cycloidal** | Two disks 180° out of phase; cancels torque ripple | Doubles disk print time | J1, J2 (high duty cycle) |
+| **S-curve trajectories** | MoveIt 2 jerk-limited profiles (`joint_limits.yaml`) | Software only | All joints |
+| **1/32 microstepping** | CL42T DIP switch (J3/J4); CL57T already supports | No cost | J3, J4 |
+| **PTFE grease** | Standard lubrication requirement | Already in BOM | J1–J4 |
+
+**Rationale**: The counterweight is the most impactful and cheapest fix — it statically balances the rotating assembly and eliminates the imbalance force at **all speeds**. The twin-disk addition at J1/J2 addresses torque ripple, which is a secondary vibration source distinct from the imbalance. S-curves prevent the firmware from exciting the estimated 18.6 Hz PETG link resonance during acceleration phases. Together, these measures should reduce vibration to a level imperceptible during normal pick-and-place.
+
+---
+
+### 1g. PETG over PLA or ABS
 
 **Decision**: Use **PETG filament** as the primary structural material.
 
@@ -158,8 +198,8 @@ Writing a custom equivalent would take months and would lack the testing coverag
 
 | Decision | Options | Blocking Factor |
 |:---|:---|:---|
-| J3 belt reduction ratio | 3:1 vs 4:1 | Requires accurate CAD mass for J3 link |
 | Wrist encoder (AS5600 on J5/J6) | Add or skip | Test open-loop accuracy first; add if drift is a problem |
 | Collision avoidance method | OctoMap (camera) vs. static scene | Camera integration TBD |
 | User interface | Web dashboard vs. RViz markers vs. joystick | Depends on final workflow preference |
 | Gripper type | Parallel jaw vs. vacuum vs. magnetic | Depends on target objects for pick-and-place |
+| J4 ratio refinement | Stay at 10:1 or reduce to 8:1 | Depends on measured CAD mass — smaller ratio = lighter housing |

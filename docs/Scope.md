@@ -39,19 +39,20 @@ The system is divided into four domains: **Mechanical**, **Firmware**, **Softwar
 
 | Joint | Name | Motor | Driver | Gearing | Notes |
 |:---:|:---|:---|:---|:---|:---|
-| J1 | Base Rotation | NEMA 23 (2.0 Nm) | CL57T closed-loop | Cycloidal 20:1 | → 40 Nm effective |
-| J2 | Shoulder Pitch | NEMA 23 (2.0 Nm) | CL57T closed-loop | Cycloidal 20:1 | Critical torque joint |
-| J3 | Elbow Pitch | NEMA 17 (80 Ncm) | CL42T closed-loop | GT2 belt 3–4:1 | Folded-axis mounting |
-| J4 | Forearm Twist | NEMA 17 (42 Ncm) | CL42T closed-loop | Direct or belt 2:1 | |
+| J1 | Base Rotation | NEMA 23 (2.0 Nm) | CL57T closed-loop | Cycloidal 20:1 | → 40 Nm effective; twin-disk |
+| J2 | Shoulder Pitch | NEMA 23 (2.0 Nm) | CL57T closed-loop | Cycloidal 20:1 | Critical torque joint; twin-disk |
+| J3 | Elbow Pitch | NEMA 17 (80 Ncm) | CL42T closed-loop | Cycloidal 15:1 | → 12 Nm; resolves torque shortfall |
+| J4 | Forearm Twist | NEMA 17 (42 Ncm) | CL42T closed-loop | Cycloidal 10:1 | Resolution + damping; → 4.2 Nm |
 | J5 | Wrist Pitch | NEMA 14 (14 Ncm) | TMC2209 open-loop | Direct | Ultra-lightweight |
 | J6 | Tool Roll | NEMA 14 (14 Ncm) | TMC2209 open-loop | Direct | Ultra-lightweight |
 
 **Power Supply**: Mean Well LRS-350-24 (350W, 24V, 14.6A) — sized for the 13.8A peak theoretical draw of all 6 motors.
 
 **Key Components**:
-- **Cycloidal drives** (J1/J2): 3D-printed PETG disks + hardened steel dowel pins as ring teeth + 608ZZ eccentric cam bearings + 6806/6808 thin-section output bearings
-- **GT2 belts & pulleys**: 6mm belt, 36T pulleys at joint pivots for folded-axis joints
-- **74HC245**: Logic level shifter (3.3V STM32 → 5V for industrial drivers)
+- **Cycloidal drives (J1–J4)**: 3D-printed PETG disks + hardened steel dowel pins (ring teeth) + 608ZZ eccentric cam bearings + 6804/6806/6808 thin-section output bearings. Ratios: 20:1 (J1/J2), 15:1 (J3), 10:1 (J4).
+- **Counterweights (J1–J4)**: Second 608ZZ on the rear motor shaft at 180°, cancelling eccentric imbalance at all speeds.
+- **Twin-disk design (J1/J2)**: Two cycloidal disks 180° out of phase, cancelling torque ripple and axial forces.
+- **74HC245**: Logic level shifter (3.3V STM32 → 5V for industrial CL57T/CL42T drivers)
 - **LM2596**: Buck converters to drop 24V to 5V for logic (Pi, STM32)
 - **A3144 Hall sensors**: Homing reference for each joint at boot
 - **MG996R servo**: End-effector gripper actuator
@@ -105,11 +106,11 @@ The software stack is designed so that **swapping between simulation and hardwar
 
 **Goal**: Prove the control chain and cycloidal drive geometry before committing to a full 6-axis build.
 
-1. Assemble a **single-joint bench prototype**: 1× NEMA 23 + CL57T driver + one cycloidal drive unit
+1. Assemble a **single-joint bench prototype**: 1× NEMA 23 + CL57T driver + one 20:1 cycloidal drive unit (with counterweight + twin-disk)
 2. Wire STM32 → 74HC245 → CL57T; verify reliable STEP/DIR command delivery
-3. Validate cycloidal drive under load (add measured weight; measure output angle vs. commanded angle)
+3. Validate cycloidal drive under load: add measured weight, measure output angle vs. commanded angle, confirm counterweight eliminates vibration
 4. Wire UART between STM32 and Raspberry Pi; test the full command chain (Python script → ROS 2 → Pi → STM32 → motor)
-5. Build and test the second motor tier: 1× NEMA 17 + CL42T; test belt drive geometry in CAD
+5. Build and test the J3 motor tier: 1× NEMA 17 + CL42T + 15:1 cycloidal drive; validate torque and fit within upper arm link envelope
 
 **Exit Criteria**: Successfully command a joint to a target angle and read back the actual position with < 1° error under load.
 
