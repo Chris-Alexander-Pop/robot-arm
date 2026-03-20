@@ -15,46 +15,79 @@ The arm is designed for **desktop-scale pick-and-place operations**, targeting a
 
 The motor stack is split into three tiers based on joint position and torque requirement. Mounting heavier motors closer to the base is a deliberate strategy to minimize the **moving moment of inertia** — the further mass sits from the base pivot, the more energy is wasted just swinging the arm itself.
 
-| Joint | Description | Motor | Driver | Torque | Rationale |
-|:---|:---|:---|:---|:---|:---|
-| J1 | Base Rotation | NEMA 23 (2.0 Nm) | CL57T Closed-Loop | 2.0 Nm native | Base must spin the full weight of the arm |
-| J2 | Shoulder Pitch | NEMA 23 (2.0 Nm) | CL57T Closed-Loop | 2.0 Nm native | Worst-case torque joint — lifts everything upstream |
-| J3 | Elbow Pitch | NEMA 17 (80 Ncm) | CL42T Closed-Loop | 0.80 Nm native | Mid-arm, moderate load; kept light to reduce J2 duty |
-| J4 | Forearm Twist | NEMA 17 (42 Ncm) | CL42T Closed-Loop | 0.42 Nm native | Rotates forearm; low torque, lower inertia priority |
-| J5 | Wrist Pitch | NEMA 14 (14 Ncm) | TMC2209 Open-Loop | 0.14 Nm native | Must be ultra-lightweight — any mass here multiplies elbow torque |
-| J6 | Tool Roll | NEMA 14 (14 Ncm) | TMC2209 Open-Loop | 0.14 Nm native | Same rationale as J5 |
+| Joint | Description | Motor | Driver | Torque | Gearing | Eff. Output Torque |
+|:---|:---|:---|:---|:---|:---|:---|
+| J1 | Base Rotation | NEMA 23 (2.0 Nm) | CL57T Closed-Loop | 2.0 Nm | Cycloidal 20:1 | **~40 Nm** |
+| J2 | Shoulder Pitch | NEMA 23 (2.0 Nm) | CL57T Closed-Loop | 2.0 Nm | Cycloidal 20:1 | **~40 Nm** |
+| J3 | Elbow Pitch | NEMA 17 (80 Ncm) | CL42T Closed-Loop | 0.80 Nm | Cycloidal 15:1 | **~12 Nm** |
+| J4 | Forearm Twist | NEMA 17 (42 Ncm) | CL42T Closed-Loop | 0.42 Nm | Cycloidal 10:1 | **~4.2 Nm** |
+| J5 | Wrist Pitch | NEMA 14 (14 Ncm) | TMC2209 Open-Loop | 0.14 Nm | Direct | **0.14 Nm** |
+| J6 | Tool Roll | NEMA 14 (14 Ncm) | TMC2209 Open-Loop | 0.14 Nm | Direct | **0.14 Nm** |
 
-> **Note on Closed-Loop Kits**: J1–J4 use integrated closed-loop stepper kits (e.g. `1-CL57T-S20-V41`, `1-CL42T-S08-V41`, `1-CL42T-S04-V41`) which include the motor, matched driver, and encoder wiring. This eliminates the need for a separate AS5600 encoder on those joints; the kit's built-in encoder provides the position feedback the driver uses internally.
+> **Note on Closed-Loop Kits**: J1–J4 use integrated closed-loop stepper kits (`1-CL57T-S20-V41` for J1/J2, `1-CL42T-S08-V41` for J3, `1-CL42T-S04-V41` for J4) which include the motor, matched driver, and encoder wiring. The built-in encoder closes the loop at the driver level — no external AS5600 required on these joints.
 
 ---
 
 ## 3. Gearing & Power Transmission
 
-Raw motor torque is insufficient for J1 and J2 — a 2.0 Nm NEMA 23 holding a 0.5m arm with a 1 kg payload needs ~5 Nm at the shoulder pivot. The chosen solution is a **Cycloidal Drive** at J1 and J2.
+All four driven joints (J1–J4) use **cycloidal drives**. This eliminates the torque shortfall that belt-only drives had at J3, unifies the manufacturing process (same print profiles, same components), and removes belt-stretch as a source of positional error.
 
-### 3a. Cycloidal Drives (J1 & J2)
+### 3a. Cycloidal Drive Design (All J1–J4)
 
-A cycloidal drive is a compact, high-ratio speed reducer. Its key advantages over a planetary gearbox for this project are:
-- **3D Printable**: The ring pins are hardened steel dowel pins (3–5mm); the cycloidal disk and ring housing are PETG. No custom metal machining required.
-- **High Ratio in Small Space**: Achieves **~20:1 to 30:1** reduction in a single stage, giving J1/J2 an effective torque of **40–60 Nm** — far more than enough for the payload target.
-- **Near-Zero Backlash**: Great for precise position control compared to standard spur gears.
+A cycloidal drive is a compact, high-ratio speed reducer that achieves a large gear ratio in a single short stage. Its key properties:
+- **3D Printable**: Ring pins are hardened steel dowel pins (3–5mm); the disk and housing are PETG. No metal machining.
+- **High Ratio in Compact Form**: 10:1–30:1 in a package shorter than the motor itself.
+- **Near-Zero Backlash**: The disk is always in contact with multiple pins simultaneously — no gear mesh "slop".
+- **Load Shared Across Many Pins**: Force is distributed across ~half the pins at any moment, drastically reducing peak contact stress vs. a single-tooth mesh.
 
-**Key Components:**
-- **Eccentric cam**: `608ZZ` bearings press-fit onto the motor shaft offset by ~1mm
-- **Cycloidal disk**: 3D printed PETG with epitrochoidal tooth profile
-- **Ring gear**: Hardened steel dowel pins (4mm) press-fit into the housing — prevents shearing under load
-- **Output bearings**: `6806` or `6808` thin-section bearings for structural load
+**Ratio Selection per Joint:**
 
-> **Lubrication is mandatory**: Synthetic PTFE grease must be packed into the cycloidal assembly. Without it, friction will melt the PETG disk during sustained operation.
+| Joint | Pins (N) | Disk Lobes (N-1) | Ratio | Rationale |
+|:---:|:---:|:---:|:---:|:---|
+| J1 | 20 | 19 | 20:1 | Highest torque demand; maximum ratio |
+| J2 | 20 | 19 | 20:1 | Same as J1 — identical housing for simplicity |
+| J3 | 15 | 14 | 15:1 | Resolves belt shortfall; smaller housing fits NEMA 17 envelope |
+| J4 | 10 | 9 | 10:1 | Low torque demand; smallest housing, minimizes added mass |
 
-### 3b. Folded / Parallel-Axis Belt Drive (J2/J3 Option)
+**Key Components (per drive unit):**
+- **Eccentric cam**: One `608ZZ` bearing press-fit onto the motor shaft, offset by **1.0 mm** from centre
+- **Counterweight disk**: A second `608ZZ` (or equivalent mass) press-fit on the rear shaft at 180° offset — cancels eccentric imbalance and reduces vibration (see §3c)
+- **Cycloidal disk**: 3D-printed PETG with epitrochoidal tooth profile; toleranced at +0.1 to +0.15 mm clearance to ring pins
+- **Ring gear pins**: Hardened steel M4 dowel pins (4mm ⌀) press-fit into the housing — they cannot shear; only the disk is consumable
+- **Output bearings**: `6806` or `6808` thin-section bearings at J1/J2; `6804` or `6806` at J3/J4 (smaller motor, smaller housing)
+- **Output pin carrier**: A second set of output pins (same M4 dowels) in the output flange that engage the drive holes in the cycloidal disk — transmit rotation without transmitting the eccentric motion
 
-As an alternative (or complementary) strategy, **GT2 timing belt** drive is used on mid-arm joints. By mounting the NEMA 17 motor parallel to the upper arm link instead of at the joint, we:
-- Move motor mass closer to the base/shoulder, reducing the elbow's effective moment of inertia
-- Keep the joint profile slim
-- Achieve a 2:1–3:1 additional reduction using mismatched pulleys (e.g., 16T motor pulley → 36T joint pulley)
+> **Lubrication is mandatory**: Pack synthetic PTFE grease into every cycloidal assembly before first use. Dry running will melt and destroy the PETG disk within minutes of sustained load.
 
-**Components**: GT2 6mm belt, 36T idler pulleys with 8mm bore, tensioned via adjustable motor mounting slots.
+---
+
+### 3b. Vibration in Cycloidal Drives & Mitigation
+
+The rotating eccentric cam creates a **centrifugal imbalance force** that, if unmitigated, causes the whole arm to vibrate — particularly at J3 and J4 which are cantilevered further from the base.
+
+#### Source of Vibration
+
+The eccentric cam assembly (608ZZ bearing, ~20g, offset 1.0 mm from the shaft centreline) acts as an unbalanced rotating mass:
+
+$$F_{imbalance} = m_{ecc} \times e \times \omega^2$$
+
+- At **300 RPM** → ω = 31.4 rad/s → F ≈ **20 mN** (negligible)
+- At **1000 RPM** → ω = 104.7 rad/s → F ≈ **220 mN** (noticeable, especially at end-effector)
+- At **2000 RPM** → ω = 209.4 rad/s → F ≈ **880 mN** (significant — unacceptable for precision tasks)
+
+High motor speeds on the *input* side of a 20:1 drive are common (output moves slowly, but motor spins fast). Normal operational input speeds of 300–600 RPM are expected for smooth trajectories.
+
+#### Mitigation Strategies (Priority Order)
+
+1. **Counterweight Disk (Mandatory)**: A second bearing or custom-machined/printed disk of matching mass is mounted on the **rear** of the motor shaft, diametrically opposite (180° offset from) the eccentric cam. This statically balances the rotating assembly, eliminating the imbalance force entirely at all speeds. **Must be implemented on all four cycloidal drives.**
+
+2. **Twin-Disk (Dual-Phase) Cycloidal (Strongly Recommended for J1/J2)**: Use two cycloidal disks stacked axially, keyed 180° out of phase on the same eccentric. Their eccentric forces cancel each other continuously. This also doubles the load capacity and smooths the torque ripple from the individual disk lobes engaging pins. J1 and J2 should use this design given their higher duty cycles and the fact that any base vibration is amplified up the full arm length.
+
+3. **S-Curve Velocity Profiles (Software — Mandatory)**: MoveIt 2 trajectory parameterization must use **S-curve** (jerk-limited) profiles rather than trapezoidal profiles. Trapezoidal profiles produce instantaneous acceleration changes that stimulate resonant modes of the cycloidal drive and PETG links. S-curves limit the rate of change of acceleration (jerk), preventing resonance excitation. Configure in `ompl_planning.yaml` and the `joint_limits.yaml` jerk parameters.
+
+4. **Microstepping (1/32 or Higher)**: Higher microstepping reduces the per-step torque impulse from the stepper motor. Each individual step is smaller, reducing the amplitude of periodic forcing at the stepping frequency. The CL42T and CL57T support up to 1/256 microstepping — the default of 1/16 is a minimum; 1/32 is recommended for J3/J4.
+
+5. **PTFE Grease (Mandatory, also Dampens)**: A well-greased cycloidal drive is significantly quieter and more vibration-damped than a dry one. The grease film between the disk and ring pins acts as a viscous damper that absorbs high-frequency vibration energy.
 
 ---
 
@@ -79,9 +112,11 @@ Motors generate significant heat. PETG's 80°C glass transition temperature prov
 - **Blue Loctite**: Applied to all motor mount fasteners to prevent vibration-induced loosening
 
 ### 4c. Bearings
-- **Base Joint (J1)**: Large thin-section `6806` or `6808` bearing to carry the full axial load of the arm. The motor shaft should **never** carry this structural load directly.
-- **Cycloidal Input**: `608ZZ` bearings as the eccentric cam elements
-- **All Other Joints**: `608ZZ` or similar deep-groove bearings to absorb radial forces — motor shafts are only coupled for torque, never for structural support
+- **J1/J2 Output (Cycloidal)**: `6806` or `6808` thin-section bearing — carries the full structural (axial bending) load at the base and shoulder joints
+- **J3/J4 Output (Cycloidal)**: `6804` or `6806` thin-section bearing — appropriate for the smaller NEMA 17 housing profile
+- **Eccentric Cam (All Cycloidal)**: `608ZZ` bearings — one per disk stage as the eccentric cam rolling element
+- **Counterweight (All Cycloidal)**: Second `608ZZ` (or printed mass) on the rear motor shaft, 180° offset from the eccentric cam
+- **Motor shafts must NEVER carry structural loads** — motor shafts are only coupled for torque transmission. All bending/axial forces must pass through the output bearing.
 
 ---
 

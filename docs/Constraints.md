@@ -20,11 +20,9 @@ For the calculations behind these limits, see [`Calculations.md`](./Calculations
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | J1 (Base) | ~7.95 Nm | 2.0 Nm (NEMA 23) | ≥ 4× (static), ≥ 10× (dynamic) | 20:1 cycloidal | **4.0×** |
 | J2 (Shoulder) | ~7.95 Nm | 2.0 Nm (NEMA 23) | ≥ 10× (dynamic) | 20:1 cycloidal | **4.0×** |
-| J3 (Elbow) | ~3.21 Nm | 0.80 Nm (NEMA 17) | ≥ 4× | 3–4:1 belt | **~0.75×** ⚠️ |
-| J4 (Forearm) | < 1.0 Nm | 0.42 Nm (NEMA 17) | ≥ 2.4× | 2:1 belt or direct | TBD |
+| J3 (Elbow) | ~3.27 Nm | 0.80 Nm (NEMA 17) | ≥ 4.1× | **15:1 cycloidal** | **3.67×** |
+| J4 (Forearm) | ~0.015 Nm (inertial) | 0.42 Nm (NEMA 17) | ≥ 1× | **10:1 cycloidal** | **280×** |
 | J5/J6 (Wrist) | < 0.15 Nm | 0.14 Nm (NEMA 14) | ~1× | Direct | Small margin |
-
-> ⚠️ **J3 is the binding constraint** — the NEMA 17 at 3:1 belt reduction yields ~2.4 Nm against a 3.21 Nm requirement. This must be resolved in Phase 1 testing. Options: increase belt ratio to 4:1, add a second gearing stage, or reduce link mass targets in CAD. See `Calculations.md §1e`.
 
 - **Motor shafts must NEVER carry structural (axial/radial bending) loads** — all structural forces pass through bearings. Violating this will damage or destroy motor shaft bearings.
 - **Cycloidal drives require PTFE grease** — unlubricated operation will melt the PETG disk via friction heat within minutes of sustained use.
@@ -32,7 +30,7 @@ For the calculations behind these limits, see [`Calculations.md`](./Calculations
 ### 1b. Payload — SOFT
 
 - **Target**: 0.5 – 1.0 kg at the end-effector, arm fully extended
-- **Limit**: > 1.5 kg is outside the safety margin of the cycloidal drive and J3 belt drive at current gear ratios
+- **Limit**: > 1.5 kg approaches the safe limit of J2 (40 Nm effective with 4.0× margin). J3 (12 Nm, 3.67× margin at ~3.27 Nm requirement) becomes the binding structural limit above ~1.5 kg.
 - Payload targets will be verified via physical load testing in Phase 1
 
 ### 1c. Reach — SOFT
@@ -45,8 +43,8 @@ For the calculations behind these limits, see [`Calculations.md`](./Calculations
 
 - **Target**: ±0.5 – 1.0 mm at the end-effector
 - **Theoretical step resolution**: ~62 µm at full extension (J1 microstepping; see `Calculations.md §3b`)
-- **Practical limit**: Set by PETG print tolerances (~0.2mm), belt stretch (~0.1–0.2° backlash), and cycloidal play (~0.1°)
-- A repeatability better than ±0.3 mm is not achievable without replacing PETG structure with aluminum and belts with harmonic drives
+- **Practical limit**: Set by PETG print tolerances (~0.2mm) and cycloidal play (~0.1°). Belt-stretch is no longer a factor as all four main joints now use cycloidal drives.
+- A repeatability better than ±0.3 mm is not achievable without replacing PETG structure with aluminum and cycloidal drives with harmonic drives
 
 ### 1e. Temperature — HARD
 
@@ -165,7 +163,24 @@ For the calculations behind these limits, see [`Calculations.md`](./Calculations
 - **Heat-set insert holes**: Must be sized to the insert's knurled OD (typically 4.2–4.5mm for M3×5 inserts in PETG). Standard M3 clearance holes (3.2mm) are not appropriate for heat-sets.
 - **Motor mount bolt pattern**: NEMA 23 uses a 47.14mm bolt circle (4× M5); NEMA 17 uses 31mm (4× M3); NEMA 14 uses 26mm (4× M3). These patterns must be modeled exactly in CAD and printed with < 0.3mm dimensional accuracy to align the bolt holes.
 
-### 5b. Center of Mass — SOFT
+### 5b. Vibration — HARD
+
+Cycloidal drives introduce a rotating eccentric imbalance. The following constraints govern its management:
+
+- **Counterweight disk is mandatory on all 4 cycloidal drives (J1–J4)**: A second 608ZZ bearing (or equivalent mass) must be mounted on the rear motor shaft, 180° opposite the eccentric cam, before the arm is operated. Omitting this produces repeating vibration that:
+  - Fatigues PETG link structures at their resonant frequency (~18.6 Hz estimated)
+  - Degrades end-effector positioning accuracy during motion
+  - Loosens fasteners over time (even with Loctite)
+
+- **Motor input speed must stay below ~800 RPM** during normal trajectories. This keeps excitation safely below the estimated 1116 RPM structural resonance of the upper arm link. MoveIt velocity scalings must enforce this limit via `joint_limits.yaml`.
+
+- **S-curve (jerk-limited) trajectory profiles are mandatory** — do not use trapezoidal velocity profiles. Trapezoidal profiles produce instantaneous step changes in acceleration that excite the arm's resonant modes. Configure in MoveIt's trajectory parameterization settings.
+
+- **Twin-disk cycloidal construction is required at J1 and J2**: Two disks stacked 180° out of phase eliminate torque ripple and balance axial disk-pin forces. This is in addition to, not a replacement for, the shaft counterweight.
+
+- **Microstepping ≥ 1/32 is required for J3 and J4** (CL42T DIP switch): Reduces per-step torque impulse, lowering the amplitude of high-frequency forcing from stepper commutation.
+
+### 5c. Center of Mass — SOFT
 
 - The assembled arm should be **rear-heavy at the base** — the cycloidal housing and base link should be the heaviest component, keeping the center of mass close to the base.
 - If the forearm and wrist assembly is significantly heavier than expected, J2 torque requirements will increase beyond the current margin.
@@ -195,7 +210,9 @@ For the calculations behind these limits, see [`Calculations.md`](./Calculations
 Components where cost has been deliberately minimized vs. professional alternatives:
 | Component | Chosen (Cost) | Professional Alternative (Cost) | Savings |
 |:---|:---:|:---:|:---:|
-| J1/J2 gearboxes | Cycloidal PETG + pins (~$15) | Planetary gearbox (~$120) | ~$210 |
+| J1/J2 gearboxes | Cycloidal PETG + pins (~$15 each) | Planetary gearbox (~$120 each) | ~$210 |
+| J3 gearbox | Cycloidal PETG + pins (~$15) | Planetary gearbox (~$80) | ~$65 |
+| J4 gearbox | Cycloidal PETG + pins (~$10) | Planetary gearbox (~$60) | ~$50 |
 | J1–J4 position sensing | Built into CL57T/CL42T kit | Separate encoder + open-loop driver | N/A (kit is better) |
-| J5/J6 motors | NEMA 14 pancake (~$13) | Dynamixel XL430 (~$50) | ~$74 |
+| J5/J6 motors | NEMA 14 pancake (~$13 each) | Dynamixel XL430 (~$50 each) | ~$74 |
 | Structural material | PETG (~$21/kg) | Aluminum extrusion + machined hubs | ~$200+ |
