@@ -1,0 +1,17 @@
+{
+  "C_Cpp.default.configurationProvider": "platformio.platformio-ide",
+  "files.exclude": {
+    "**/.pio": true,
+    "**/.venv": true,
+    "**/build": true,
+    "**/install": true,
+    "**/log": true
+  },
+  "search.exclude": {
+    "**/.pio": true,
+    "**/.venv": true,
+    "**/build": true,
+    "**/install": true,
+    "**/log": true
+  }
+}

@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  firmware-native-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: firmware/stm32_core
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: python -m pip install --upgrade pip platformio
+
+      - name: Run native firmware tests
+        run: pio test -e native
+
+  firmware-build-and-renode:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: python -m pip install --upgrade pip platformio
+
+      - name: Build firmware ELF
+        working-directory: firmware/stm32_core
+        run: pio run -e genericSTM32F401CC
+
+      - name: Run Renode smoke test
+        uses: antmicro/renode-test-action@v5
+        with:
+          tests-to-run: simulation/renode/tests/**/*.robot
+          artifacts-path: simulation/renode/test-results
+          renode-arguments: >
+            --variable ROOT:${{ github.workspace }}
+
+      - name: Upload Renode artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: renode-test-results
+          path: simulation/renode/test-results
+
+  simulation-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: simulation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Create simulation venv
+        run: python -m venv .venv
+
+      - name: Install simulation deps
+        run: |
+          . .venv/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run simulation tests
+        run: |
+          . .venv/bin/activate
+          pytest
