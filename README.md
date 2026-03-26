@@ -27,6 +27,10 @@ These scripts:
 
 - create `simulation/.venv` and install `simulation/requirements.txt`
 - create `.tooling` and install local ROS CLI tools (`colcon`, `vcstool`, `rosdep`)
+- install Renode for the headless firmware simulation workflow
+
+Python virtual environments are only for the simulation and tooling workflows.
+The firmware C++ project uses PlatformIO, not a Python venv.
 
 ## Dev Helpers
 

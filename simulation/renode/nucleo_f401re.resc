@@ -1,0 +1,4 @@
+using sysbus
+
+mach create "nucleo_f401re"
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
