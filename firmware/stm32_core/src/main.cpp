@@ -19,7 +19,10 @@ float kp = 10.0; // Proportional gain placeholder
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial);
+  const unsigned long serial_wait_start_ms = millis();
+  while (!Serial && (millis() - serial_wait_start_ms) < 2000UL) {
+    delay(10);
+  }
   Serial.println("STM32 Robot Arm Controller Initializing...");
   
   // Initialize I2C for AS5600 encoders (Uses standard SDA/SCL pins)
