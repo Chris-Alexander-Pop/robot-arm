@@ -1,12 +1,11 @@
 #!/bin/bash
 
-# Configuration
+set -euo pipefail
+
 COMPOSE_CMD="docker compose"
-ROS_WS_DIR="$(pwd)/software/ros2_ws"
 
 echo "=== Robot Arm Dev Helper ==="
 
-# Check Docker + compose availability
 if ! command -v docker &> /dev/null; then
     echo "Error: docker is not installed or not in PATH."
     exit 1
@@ -22,13 +21,12 @@ if ! docker compose version &> /dev/null; then
     fi
 fi
 
-# Ensure we are in the root of the project by checking if software/ exists
 if [ ! -d "software" ]; then
     echo "Error: Please run this script from the root of the robot-arm project directory."
     exit 1
 fi
 
-COMMAND=$1
+COMMAND=${1:-}
 
 case "$COMMAND" in
     up)
@@ -49,7 +47,6 @@ case "$COMMAND" in
         ;;
     launch)
         echo "Launching RViz Visualization..."
-        # First ensure the workspace is built
         cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
             source /opt/ros/humble/setup.bash && \
             colcon build && \
@@ -60,7 +57,7 @@ case "$COMMAND" in
         echo "Launching MoveIt in simulation mode..."
         cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
             source /opt/ros/humble/setup.bash && \
-            colcon build --packages-select robot_description robot_arm_moveit && \
+            colcon build --packages-select robot_description robot_core robot_arm_moveit && \
             source install/setup.bash && \
             ros2 launch robot_arm_moveit sim.launch.py"
         ;;
@@ -68,29 +65,36 @@ case "$COMMAND" in
         echo "Launching MoveIt in real-hardware mode..."
         cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
             source /opt/ros/humble/setup.bash && \
-            colcon build --packages-select robot_description robot_arm_moveit && \
+            colcon build --packages-select robot_description robot_core robot_arm_moveit && \
             source install/setup.bash && \
             ros2 launch robot_arm_moveit real.launch.py"
         ;;
     moveit-test)
-        echo "Running MoveIt smoke tests..."
+        echo "Running ROS behavioral tests..."
         cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
             source /opt/ros/humble/setup.bash && \
-            colcon build --packages-select robot_description robot_arm_moveit && \
-            colcon test --packages-select robot_arm_moveit --event-handlers console_direct+ && \
-            colcon test-result --verbose"
+            colcon build --packages-select robot_description robot_core robot_arm_moveit && \
+            source install/setup.bash && \
+            python3 -m pytest \
+                /ros2_ws/src/robot_core/test/test_hardware_bridge_graph.py \
+                /ros2_ws/src/robot_arm_moveit/test/test_moveit_config.py"
+        ;;
+    behavior-test)
+        "$0" moveit-test
         ;;
     *)
         echo "Usage: ./dev.sh [COMMAND]"
         echo ""
         echo "Commands:"
-        echo "  up      : Start the ROS 2 container in the background"
-        echo "  down    : Stop the ROS 2 container"
-        echo "  shell   : Open an interactive bash shell inside the container"
-        echo "  build   : Run 'colcon build' inside the container"
-        echo "  launch  : Build the workspace and instantly launch the RViz visualization"
-        echo "  moveit-sim  : Build the workspace and launch MoveIt + RViz in simulation mode"
-        echo "  moveit-real : Build the workspace and launch MoveIt + RViz in real-hardware mode"
-        echo "  moveit-test : Run the MoveIt package smoke tests inside the container"
+        echo "  up            : Start the ROS 2 container in the background"
+        echo "  down          : Stop the ROS 2 container"
+        echo "  shell         : Open an interactive bash shell inside the container"
+        echo "  build         : Run 'colcon build' inside the container"
+        echo "  launch        : Build the workspace and instantly launch the RViz visualization"
+        echo "  moveit-sim    : Build the workspace and launch MoveIt + RViz in simulation mode"
+        echo "  moveit-real   : Build the workspace and launch MoveIt + RViz in real-hardware mode"
+        echo "  moveit-test   : Run the ROS behavioral tests inside the container"
+        echo "  behavior-test : Alias for moveit-test"
+        exit 1
         ;;
 esac

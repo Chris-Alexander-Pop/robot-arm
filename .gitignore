@@ -1,6 +1,30 @@
 .tooling/
 .venv/
 
+# Python caches and test output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage*
+htmlcov/
+.ipynb_checkpoints/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Local/generated reports and snapshots
+log.html
+report.html
+robot_output.xml
+logs/
+snapshots/
+*.save
+
 # ROS/colcon artifacts
 software/ros2_ws/build/
 software/ros2_ws/install/
