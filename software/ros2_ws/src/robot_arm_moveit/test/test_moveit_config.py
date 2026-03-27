@@ -111,3 +111,17 @@ def test_real_launch_adds_rviz():
     launch_text = launch_file.read_text(encoding='utf-8')
 
     assert "package='rviz2'" in launch_text
+
+
+def test_moveit_controller_mapping_targets_bridge_action():
+    package_share = Path(get_package_share_directory('robot_arm_moveit'))
+    controllers_file = package_share / 'config' / 'moveit_controllers.yaml'
+
+    controllers = yaml.safe_load(controllers_file.read_text(encoding='utf-8'))
+
+    controller_manager = controllers['moveit_simple_controller_manager']
+    arm_controller = controller_manager['arm_controller']
+
+    assert controller_manager['controller_names'] == ['arm_controller']
+    assert arm_controller['type'] == 'FollowJointTrajectory'
+    assert arm_controller['action_ns'] == 'follow_joint_trajectory'
