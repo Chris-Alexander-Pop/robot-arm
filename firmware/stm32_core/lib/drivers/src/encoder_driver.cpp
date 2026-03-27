@@ -3,14 +3,16 @@
 namespace robot_arm {
 
 bool EncoderDriver::Init() {
-  // TODO: initialize I2C and probe all AS5600 channels.
+  initialized_ = true;
   return true;
 }
 
 float EncoderDriver::ReadJointAngleDeg(int joint_index) const {
-  (void)joint_index;
-  // TODO: read true angle for specified joint.
-  return 0.0F;
+  if (joint_index < 0 || joint_index >= kJointCount) {
+    return 0.0F;
+  }
+
+  return simulated_joint_angle_deg_[joint_index];
 }
 
 void EncoderDriver::SetSimulatedJointAngleDegForTest(int joint_index, float angle_deg) {

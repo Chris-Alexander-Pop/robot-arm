@@ -91,6 +91,11 @@ void run_packet_codec_tests(TestContext& test) {
   bad_checksum_buffer[27U] ^= 0xFFU;
   test.Check(!codec.DecodeJointCommand(bad_checksum_buffer, 28U, &decoded), "decode should reject bad checksum");
 
+  uint8_t wrong_command_id_buffer[64]{};
+  std::memcpy(wrong_command_id_buffer, command_buffer, sizeof(command_buffer));
+  wrong_command_id_buffer[2U] = 0x11U;
+  test.Check(!codec.DecodeJointCommand(wrong_command_id_buffer, 28U, &decoded), "decode should reject wrong command id");
+
   test.Check(codec.EncodeJointState(state, nullptr, sizeof(state_buffer)) == 0U, "encode should reject null output");
   test.Check(codec.EncodeJointState(state, state_buffer, 10U) == 0U, "encode should reject undersized capacity");
 
@@ -105,8 +110,16 @@ void run_packet_codec_tests(TestContext& test) {
   test.Check(!codec.DecodeHeartbeat(nullptr, heartbeat_encoded), "heartbeat decode should reject null buffer");
   test.Check(!codec.DecodeHeartbeat(heartbeat_buffer, 3U), "heartbeat decode should reject short frames");
 
+  uint8_t bad_heartbeat_header[8]{};
+  std::memcpy(bad_heartbeat_header, heartbeat_buffer, heartbeat_encoded);
+  bad_heartbeat_header[0U] = 0x00U;
+  test.Check(!codec.DecodeHeartbeat(bad_heartbeat_header, heartbeat_encoded), "heartbeat decode should reject bad header");
+
   uint8_t bad_heartbeat_buffer[8]{};
   std::memcpy(bad_heartbeat_buffer, heartbeat_buffer, heartbeat_encoded);
   bad_heartbeat_buffer[3U] ^= 0xFFU;
   test.Check(!codec.DecodeHeartbeat(bad_heartbeat_buffer, heartbeat_encoded), "heartbeat decode should reject bad checksum");
+
+  test.Check(!codec.DecodeJointCommand(state_buffer, encoded, &decoded), "decode should reject state frames as commands");
+  test.Check(!codec.DecodeHeartbeat(state_buffer, encoded), "heartbeat decode should reject state frames");
 }
