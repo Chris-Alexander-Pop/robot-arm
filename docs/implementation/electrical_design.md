@@ -147,3 +147,40 @@ To avoid point-to-point breadboard wiring in the final assembly, a **custom perf
 - Pads for the 74HC245 level shifter IC
 - I2C header for TCA9548A multiplexer
 - UART header for Raspberry Pi connection
+
+---
+
+## 6. Validation Strategy Without Hardware
+
+If no physical components are on hand, the electrical side can still be validated at the level that matters most right now: power, interfaces, fault handling, and wiring assumptions.
+
+### 6a. What Can Be Checked Now
+
+- **Power budget math**: Recheck PSU headroom, per-rail current, fuse sizing, and startup margin.
+- **Interface contracts**: Define exact STEP/DIR/ENABLE polarity, logic levels, fault-pin behavior, and connector pinouts.
+- **Signal integrity assumptions**: Confirm that 3.3V to 5V shifting, pullups, and cable lengths are reasonable for the chosen wiring scheme.
+- **Safety behavior**: Document what should happen on E-stop, driver alarm, serial timeout, and encoder failure.
+- **Harness documentation**: Freeze a wiring table so the physical build later matches the software assumptions.
+
+### 6b. What Is Not Worth Simulating Yet
+
+- Detailed stepper winding physics for every motor.
+- Closed-loop behavior of the CL57T/CL42T drivers unless vendor models are available.
+- Full EMI/noise behavior of the real harness.
+
+Those are only useful once the actual parts and cable lengths exist. Before that, they add complexity without improving the design much.
+
+### 6c. Recommended No-Hardware Work Products
+
+1. A pin-by-pin electrical map for the STM32, level shifter, drivers, sensors, and power rails.
+2. A current budget table that includes peak, average, and fault-state draw.
+3. A fault-state matrix showing how the firmware and hardware should respond to each failure.
+4. A bench bring-up checklist for when the first PSU, driver, and motor are available.
+
+The corresponding docs are:
+
+- [Electrical interface map](electrical_interface_map.md)
+- [Electrical schematic plan](electrical_schematic_plan.md)
+- [Electrical bring-up checklist](electrical_bringup_checklist.md)
+
+For this project, that means the immediate electrical deliverable is a **clean interface specification**, not a full circuit simulator.
