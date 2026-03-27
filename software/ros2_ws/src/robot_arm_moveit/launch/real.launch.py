@@ -18,6 +18,18 @@ def generate_launch_description():
             )
         ),
         Node(
+            package='robot_core',
+            executable='hardware_bridge_node',
+            name='hardware_bridge_node',
+            output='screen',
+            parameters=[{
+                'serial_port': '/dev/ttyUSB0',
+                'baud_rate': 115200,
+                'poll_period_ms': 20,
+                'heartbeat_period_ms': 1000,
+            }],
+        ),
+        Node(
             package='rviz2',
             executable='rviz2',
             name='rviz2',
