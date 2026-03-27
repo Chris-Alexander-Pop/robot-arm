@@ -17,4 +17,12 @@ void JointController::Step(float dt_s) {
   // TODO: run per-joint PID loops and send outputs to stepper driver.
 }
 
+const JointCommand& JointController::command() const {
+  return command_;
+}
+
+const JointState& JointController::measured_state() const {
+  return measured_state_;
+}
+
 }  // namespace robot_arm
