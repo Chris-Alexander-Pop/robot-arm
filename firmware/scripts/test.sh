@@ -9,4 +9,13 @@ if ! command -v pio >/dev/null 2>&1; then
 fi
 
 cd "$ROOT_DIR/firmware/stm32_core"
-pio test -e native
+pio run -e native
+
+if [[ -x .pio/build/native/program ]]; then
+  ./.pio/build/native/program
+elif [[ -x .pio/build/native/program.exe ]]; then
+  ./.pio/build/native/program.exe
+else
+  echo "Error: native test program was not built."
+  exit 1
+fi

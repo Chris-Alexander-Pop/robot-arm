@@ -15,4 +15,4 @@ else
 fi
 
 cd "$ROOT_DIR"
-"$RENODE_BIN" --disable-xwt --console -e "i @$RENODE_SCRIPT; sysbus LoadELF @${ROOT_DIR}/firmware/stm32_core/.pio/build/genericSTM32F401CC/firmware.elf; start"
+"$RENODE_BIN" --disable-xwt --console -e "i @$RENODE_SCRIPT; sysbus LoadELF @${ROOT_DIR}/firmware/stm32_core/.pio/build/genericSTM32F401CC_renode/firmware.elf; start"
