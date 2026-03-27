@@ -125,3 +125,50 @@ def test_moveit_controller_mapping_targets_bridge_action():
     assert controller_manager['controller_names'] == ['arm_controller']
     assert arm_controller['type'] == 'FollowJointTrajectory'
     assert arm_controller['action_ns'] == 'follow_joint_trajectory'
+
+
+def test_moveit_joint_limits_have_complete_positive_motion_limits():
+    package_share = Path(get_package_share_directory('robot_arm_moveit'))
+    joint_limits_file = package_share / 'config' / 'joint_limits.yaml'
+
+    joint_limits = yaml.safe_load(joint_limits_file.read_text(encoding='utf-8'))
+    expected_joints = [f'joint{index}' for index in range(1, 7)]
+
+    for joint_name in expected_joints:
+        joint_limit = joint_limits['joint_limits'][joint_name]
+        assert joint_limit['has_velocity_limits'] is True
+        assert joint_limit['has_acceleration_limits'] is True
+        assert joint_limit['max_velocity'] > 0.0
+        assert joint_limit['max_acceleration'] > 0.0
+
+
+def test_moveit_launch_descriptions_include_expected_planning_stack():
+    package_share = Path(get_package_share_directory('robot_arm_moveit'))
+    launch_file = package_share / 'launch' / 'moveit.launch.py'
+
+    launch_text = launch_file.read_text(encoding='utf-8')
+
+    assert 'robot_state_publisher' in launch_text
+    assert 'move_group' in launch_text
+    assert 'robot_description_semantic' in launch_text
+    assert 'robot_description_kinematics' in launch_text
+    assert 'robot_description_planning' in launch_text
+
+
+def test_sim_and_real_launch_files_split_visualization_from_hardware_bridge():
+    package_share = Path(get_package_share_directory('robot_arm_moveit'))
+    sim_launch = package_share / 'launch' / 'sim.launch.py'
+    real_launch = package_share / 'launch' / 'real.launch.py'
+
+    sim_text = sim_launch.read_text(encoding='utf-8')
+    real_text = real_launch.read_text(encoding='utf-8')
+
+    assert "package='rviz2'" in sim_text
+    assert "package='rviz2'" in real_text
+    assert "package='robot_core'" not in sim_text
+    assert "package='robot_core'" in real_text
+    assert 'hardware_bridge_node' in real_text
+    assert 'hardware_bridge_node' not in sim_text
+    assert '/dev/ttyUSB0' in real_text
+    assert 'poll_period_ms' in real_text
+    assert 'heartbeat_period_ms' in real_text
