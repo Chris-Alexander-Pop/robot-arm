@@ -9,6 +9,8 @@ WORKDIR $ROS_WS
 RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-colcon-common-extensions \
+    ros-humble-moveit \
+    ros-humble-moveit-setup-assistant \
     ros-humble-joint-state-publisher \
     ros-humble-joint-state-publisher-gui \
     ros-humble-xacro \
