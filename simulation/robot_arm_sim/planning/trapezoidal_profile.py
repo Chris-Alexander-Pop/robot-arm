@@ -12,6 +12,6 @@ def generate_profile(start: List[float], goal: List[float], duration_s: float) -
     """Return a minimal two-point profile placeholder."""
     # TODO: implement full trapezoidal velocity profile.
     return [
-        TrajectoryPoint(time_s=0.0, joints=start),
-        TrajectoryPoint(time_s=duration_s, joints=goal),
+        TrajectoryPoint(time_s=0.0, joints=list(start)),
+        TrajectoryPoint(time_s=duration_s, joints=list(goal)),
     ]

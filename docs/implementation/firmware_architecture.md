@@ -31,7 +31,7 @@ The timer auto-reloads at this period. No `delay()` calls, no busy-waiting. The 
 
 ### 2b. Closed-Loop PID Control
 
-Although the CL57T and CL42T drivers handle their own internal closed-loop correction at the driver level, the STM32 runs a **supervisory position control loop** at the system level:
+Although the CL57T and CL42T drivers handle their own internal closed-loop correction at the driver level, the STM32 can still run a **supervisory position control loop** at the system level when the firmware needs behavior above the driver's built-in correction:
 
 1. **Setpoint**: Target joint angle received from the Raspberry Pi (degrees).
 2. **Process Variable**: Current actual joint angle read from the driver or AS5600 encoder.
@@ -43,6 +43,14 @@ u(t) = Kp * e(t) + Ki * ∫e(t)dt + Kd * de(t)/dt
 ```
 
 The control loop runs at **≥ 1 kHz** (every 1ms) using a SysTick or dedicated timer interrupt. The PID gains (Kp, Ki, Kd) are **stored in flash** for each joint independently and can be tuned over the serial command interface without reflashing.
+
+This makes the PID layer useful for:
+- smoothing setpoint changes from ROS / MoveIt,
+- compensating for load-dependent lag on joints that expose external position feedback,
+- tuning homing and slow approach moves,
+- and providing a consistent control abstraction if a joint is later converted from closed-loop driver feedback to external encoder feedback.
+
+It is not meant to replace the driver's own internal correction loop on J1-J4.
 
 > **For the open-loop TMC2209 wrist joints (J5/J6)**: The PID loop is effectively open-loop (encoder feedback not available by default). The STM32 simply commands position by counting pulses from the homed reference. If drift becomes a problem, AS5600 encoders can be added at the wrist.
 
