@@ -3,7 +3,14 @@
 This document outlines the low-level real-time control code for the STM32 microcontroller.
 
 ## DEVELOPMENT
-*Testing, driver validation, and core logic - to be completed with prototype hardware (one of each motor/driver) before the final build.*
+*Testing, driver validation, and core logic - some items require prototype hardware (one of each motor/driver) before the final build; until then, focus on protocol contracts, interface definitions, and simulation-friendly logic.*
+
+### PRE-HARDWARE / ANALYSIS
+
+- [ ] **Electrical Interface Map**: Define pinouts, logic levels, connector assignments, and fault-line behavior for every joint.
+- [ ] **Current Budget Check**: Verify peak, average, and startup current against the PSU and logic buck converters.
+- [ ] **Fault-State Matrix**: Specify firmware responses for E-stop, driver alarm, serial timeout, encoder failure, and I2C bus hang.
+- [ ] **Protocol Mocking**: Add host-side tests or stubs that validate packet framing and command parsing without real hardware.
 
 - [ ] **Serial Protocol**: Define and implement a robust UART/USB command protocol between RPi and STM32.
 - [ ] **Stepper Core**: Implement precise timer-based pulse generation for stepper drivers (TB6600/TMC2209) on a single test axis.

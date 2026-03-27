@@ -1,0 +1,8 @@
+#include "../test/firmware_under_test.cpp"
+#include "../lib/drivers/src/encoder_driver.cpp"
+#include "../lib/drivers/src/stepper_driver.cpp"
+#include "../test/test_driver_scaffolds.cpp"
+#include "../test/test_joint_controller.cpp"
+#include "../test/test_packet_codec.cpp"
+#include "../test/test_pid_controller.cpp"
+#include "../test/test_main.cpp"
