@@ -24,4 +24,10 @@ void run_pid_controller_tests(TestContext& test) {
   robot_arm::PidController negative_dt_controller(1.0F, 0.0F, 0.0F);
   test.CheckFloatEq(0.0F, negative_dt_controller.Update(1.0F, -0.5F), "pid should reject negative dt");
   test.CheckFloatEq(1.0F, negative_dt_controller.Update(1.0F, 1.0F), "pid should recover after rejected dt");
+
+  robot_arm::PidController change_controller(1.0F, 0.0F, 1.0F);
+  test.CheckFloatEq(6.0F, change_controller.Update(2.0F, 0.5F), "pid should include derivative on first change");
+  test.CheckFloatEq(0.0F, change_controller.Update(1.0F, 1.0F), "pid should respond to a decreasing error");
+  change_controller.Reset();
+  test.CheckFloatEq(4.5F, change_controller.Update(1.5F, 0.5F), "pid reset should restore derivative history");
 }
