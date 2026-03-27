@@ -9,7 +9,8 @@ This document outlines the high-level control logic and ROS 2 workspace running 
 - [ ] **Hardware Bridge Node**: Write a ROS 2 node to communicate via Serial/UART with the STM32 (test with a single motor first).
 - [ ] **Telemetry Pipeline**: Implement parsing of incoming serial data to publish joint states (encoders) to `/joint_states`.
 - [ ] **Safety & Heartbeat**: Implement a software watchdog/heartbeat node that monitors connection health between Pi and STM32.
-- [ ] **MoveIt 2 Configuration Generation**: Use the MoveIt Setup Assistant with the preliminary URDF to generate move groups and kinematics plugins.
+- [x] **MoveIt 2 Configuration Generation**: Use the MoveIt Setup Assistant with the preliminary URDF to generate move groups and kinematics plugins.
+- [x] **MoveIt 2 Package Scaffold**: Added `robot_arm_moveit` with launch, configuration, and smoke tests.
 
 ## INTEGRATION
 *Full trajectory planning, advanced controls, and application layers - after the full arm is built and responsive.*
