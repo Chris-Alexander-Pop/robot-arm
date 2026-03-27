@@ -8,6 +8,10 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(control_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(trajectory_msgs REQUIRED)
 
 include_directories(include)
 
@@ -21,8 +25,17 @@ target_include_directories(robot_core_domain PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
-add_executable(hardware_bridge_node src/nodes/hardware_bridge_node.cpp)
-ament_target_dependencies(hardware_bridge_node rclcpp)
+add_executable(hardware_bridge_node
+  src/nodes/hardware_bridge_node.cpp
+  src/adapters/serial_hardware_interface.cpp
+)
+ament_target_dependencies(hardware_bridge_node
+  rclcpp
+  rclcpp_action
+  control_msgs
+  sensor_msgs
+  trajectory_msgs
+)
 target_link_libraries(hardware_bridge_node robot_core_domain)
 
 add_executable(planning_node src/nodes/planning_node.cpp)

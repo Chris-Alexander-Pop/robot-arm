@@ -45,16 +45,40 @@ case "$COMMAND" in
         ;;
     build)
         echo "Building ROS 2 Workspace (colcon build)..."
-        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "source /opt/ros/humble/setup.bash && colcon build --log-base .log"
+        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "source /opt/ros/humble/setup.bash && colcon build"
         ;;
     launch)
         echo "Launching RViz Visualization..."
         # First ensure the workspace is built
         cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
             source /opt/ros/humble/setup.bash && \
-            colcon build --log-base .log && \
+            colcon build && \
             source install/setup.bash && \
             ros2 launch robot_description display.launch.py"
+        ;;
+    moveit-sim)
+        echo "Launching MoveIt in simulation mode..."
+        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
+            source /opt/ros/humble/setup.bash && \
+            colcon build --packages-select robot_description robot_arm_moveit && \
+            source install/setup.bash && \
+            ros2 launch robot_arm_moveit sim.launch.py"
+        ;;
+    moveit-real)
+        echo "Launching MoveIt in real-hardware mode..."
+        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
+            source /opt/ros/humble/setup.bash && \
+            colcon build --packages-select robot_description robot_arm_moveit && \
+            source install/setup.bash && \
+            ros2 launch robot_arm_moveit real.launch.py"
+        ;;
+    moveit-test)
+        echo "Running MoveIt smoke tests..."
+        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
+            source /opt/ros/humble/setup.bash && \
+            colcon build --packages-select robot_description robot_arm_moveit && \
+            colcon test --packages-select robot_arm_moveit --event-handlers console_direct+ && \
+            colcon test-result --verbose"
         ;;
     *)
         echo "Usage: ./dev.sh [COMMAND]"
@@ -65,5 +89,8 @@ case "$COMMAND" in
         echo "  shell   : Open an interactive bash shell inside the container"
         echo "  build   : Run 'colcon build' inside the container"
         echo "  launch  : Build the workspace and instantly launch the RViz visualization"
+        echo "  moveit-sim  : Build the workspace and launch MoveIt + RViz in simulation mode"
+        echo "  moveit-real : Build the workspace and launch MoveIt + RViz in real-hardware mode"
+        echo "  moveit-test : Run the MoveIt package smoke tests inside the container"
         ;;
 esac
