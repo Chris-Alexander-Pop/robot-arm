@@ -1,6 +1,6 @@
 param(
     [Parameter(Position=0)]
-    [ValidateSet("up", "down", "shell", "build", "launch")]
+    [ValidateSet("up", "down", "shell", "build", "launch", "moveit-sim", "moveit-real", "moveit-test")]
     [string]$Command
 )
 
@@ -62,15 +62,30 @@ switch ($Command) {
     "build" {
         Write-Host "Building ROS 2 workspace (colcon build)..."
         Set-Location "software"
-        Invoke-Compose exec -w /ros2_ws ros2 bash -lc "source /opt/ros/humble/setup.bash && colcon build --log-base .log"
+        Invoke-Compose exec -w /ros2_ws ros2 bash -lc "source /opt/ros/humble/setup.bash && colcon build"
     }
     "launch" {
         Write-Host "Building workspace and launching RViz..."
         Set-Location "software"
-        Invoke-Compose exec -w /ros2_ws ros2 bash -lc "source /opt/ros/humble/setup.bash && colcon build --log-base .log && source install/setup.bash && ros2 launch robot_description display.launch.py"
+        Invoke-Compose exec -w /ros2_ws ros2 bash -lc "source /opt/ros/humble/setup.bash && colcon build && source install/setup.bash && ros2 launch robot_description display.launch.py"
+    }
+    "moveit-sim" {
+        Write-Host "Building workspace and launching MoveIt in simulation mode..."
+        Set-Location "software"
+        Invoke-Compose exec -w /ros2_ws ros2 bash -lc "source /opt/ros/humble/setup.bash && colcon build --packages-select robot_description robot_arm_moveit && source install/setup.bash && ros2 launch robot_arm_moveit sim.launch.py"
+    }
+    "moveit-real" {
+        Write-Host "Building workspace and launching MoveIt in real-hardware mode..."
+        Set-Location "software"
+        Invoke-Compose exec -w /ros2_ws ros2 bash -lc "source /opt/ros/humble/setup.bash && colcon build --packages-select robot_description robot_arm_moveit && source install/setup.bash && ros2 launch robot_arm_moveit real.launch.py"
+    }
+    "moveit-test" {
+        Write-Host "Running MoveIt smoke tests..."
+        Set-Location "software"
+        Invoke-Compose exec -w /ros2_ws ros2 bash -lc "source /opt/ros/humble/setup.bash && colcon build --packages-select robot_description robot_arm_moveit && colcon test --packages-select robot_arm_moveit --event-handlers console_direct+ && colcon test-result --verbose"
     }
     default {
-        Write-Host "Usage: ./dev.ps1 [up|down|shell|build|launch]"
+        Write-Host "Usage: ./dev.ps1 [up|down|shell|build|launch|moveit-sim|moveit-real|moveit-test]"
         exit 1
     }
 }
