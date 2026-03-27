@@ -17,4 +17,16 @@ void StepperDriver::Tick() {
   // TODO: service pulse generation at deterministic frequency.
 }
 
+bool StepperDriver::initialized() const {
+  return initialized_;
+}
+
+float StepperDriver::joint_velocity_deg_s(int joint_index) const {
+  if (joint_index < 0 || joint_index >= kJointCount) {
+    return 0.0F;
+  }
+
+  return joint_velocity_deg_s_[joint_index];
+}
+
 }  // namespace robot_arm
