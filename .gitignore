@@ -17,6 +17,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# SolidWorks: lock files when a file is open (~$name.SLDXXX)
+~$*
+
 # Local/generated reports and snapshots
 log.html
 report.html
