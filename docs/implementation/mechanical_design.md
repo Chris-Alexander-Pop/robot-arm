@@ -140,3 +140,9 @@ The arm's kinematics are parameterized using the **Modified DH convention**. The
 | J6 | 0 | 0 | d6 | θ6 | Tool roll; d6 = flange offset |
 
 > **L1, L2, d1, d4, d6** are physical link lengths determined by the CAD model. These will be updated once the first prototype joints are dimensioned.
+
+---
+
+## 7. Source CAD & export workflow
+
+Authoritative mechanical CAD is in **`mechanical/sw-models/`** (SolidWorks). To keep the repo and reviews usable (without relying on Windows-only binary formats alone), see **[CAD source files & export conventions](cad_exports.md)** for which formats to export per part, assembly, and drawing, and how to name them.
