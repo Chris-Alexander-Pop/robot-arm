@@ -11,7 +11,7 @@ This document analyzes existing open-source and commercial 6-DOF robot arms that
 
 ## 1. Annin Robotics AR4 — The Gold Standard
 
-**Links**: [annin.com](https://www.annin.com) | [GitHub](https://github.com/Chris-Annin/AR4_Ver2)
+**Links**: [annin.com](https://anninrobotics.com/) | [GitHub](https://github.com/Chris-Annin/AR4_Ver2)
 
 **Specs**:
 - 6 DOF, NEMA 23 steppers at base/shoulder, NEMA 17 at elbow/forearm, servos at wrist
