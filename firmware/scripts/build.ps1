@@ -8,4 +8,4 @@ if (-not (Get-Command pio -ErrorAction SilentlyContinue)) {
 }
 
 Set-Location $ProjectDir
-pio run
+pio run -e nucleo_f401re
