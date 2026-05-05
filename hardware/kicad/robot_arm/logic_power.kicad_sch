@@ -1,0 +1,140 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "6f4e2583-5b67-447d-8b18-b4da6cff31e8")
+	(paper "A3")
+	(title_block
+		(title "Logic power")
+		(date "2026-05-04")
+		(rev "0.1")
+	)
+	(lib_symbols)
+	(text "Logic power (sheet Sec.2b)\n- LM2596 #1: 24V -> 5V_LOGIC (STM32, 74HC245, Hall, TCA9548A)\n- LM2596 #2: 24V -> 5V_PI (Raspberry Pi 3)\n- LM2596 #3: 24V -> 5V_SERVO (MG996R only)\n- Star GND at PSU return; keep Pi/servo bucks separate for noise"
+		(exclude_from_sim no)
+		(at 15 15 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "cf73a3b8-9b75-4f30-b8b3-b310fae00425")
+	)
+	(global_label "5V_PI"
+		(shape bidirectional)
+		(at 200 115 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7256d0a9-ed43-46b2-af31-12b145205c5d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 200 115 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "GND_LOGIC"
+		(shape bidirectional)
+		(at 200 160 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9914da93-d37d-496d-ac4c-da0f26e4955c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 200 160 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "24V_MOTOR"
+		(shape bidirectional)
+		(at 40 160 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d8b35315-6ce7-45ac-a451-ac37d652697e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 40 160 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "5V_LOGIC"
+		(shape bidirectional)
+		(at 200 100 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d9f60f8f-da2f-412c-88d1-1dae00451a19")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 200 100 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "5V_SERVO"
+		(shape bidirectional)
+		(at 200 130 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ede9ed18-246f-453f-99a0-62566c75e4af")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 200 130 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
