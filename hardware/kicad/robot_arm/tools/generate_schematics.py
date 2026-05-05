@@ -73,7 +73,7 @@ def write_power_entry() -> str:
 def write_logic_power() -> str:
     notes = """Logic power (sheet Sec.2b)
 - LM2596 #1: 24V -> 5V_LOGIC (STM32, 74HC245, Hall, TCA9548A)
-- LM2596 #2: 24V -> 5V_PI (Raspberry Pi 3)
+- LM2596 #2: 24V -> 5V_PI (Raspberry Pi 4)
 - LM2596 #3: 24V -> 5V_SERVO (MG996R only)
 - Star GND at PSU return; keep Pi/servo bucks separate for noise"""
     body = f"""
