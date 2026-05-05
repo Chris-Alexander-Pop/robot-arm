@@ -1,0 +1,162 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "e441c294-edc5-4cb3-a7de-0975c2dcfee5")
+	(paper "A3")
+	(title_block
+		(title "Motor driver J1")
+		(date "2026-05-04")
+		(rev "0.1")
+	)
+	(lib_symbols)
+	(text "Joint J1 - CL57T closed-loop kit\nClosed-loop (CL): motor phases + encoder harness from kit; logic PUL/DIR/ENA (5V) + ALARM -> DRV_ALARM_J1\nTMC2209: VM=24V_MOTOR, GND, STEP/DIR/EN from MCU (3.3V); verify MS/DIAG pins on YOUR carrier.\n\nNetclass hint: MotorPower"
+		(exclude_from_sim no)
+		(at 12 12 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "9ba6ed2a-23fd-4399-98d0-683efbfee4ff")
+	)
+	(global_label "GND_MOTOR"
+		(shape bidirectional)
+		(at 180 165 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "1fbc1a87-2cb5-4f1d-8228-5c5d0dc71159")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 165 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_EN_J1"
+		(shape bidirectional)
+		(at 180 100 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "254e92fb-1169-4869-ad19-6fcc34bb491a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 100 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_DIR_J1"
+		(shape bidirectional)
+		(at 180 85 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6a73d6d8-d42d-4c87-8da4-8daeabadc97c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 85 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "DRV_ALARM_J1"
+		(shape bidirectional)
+		(at 180 120 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a51407c7-52a2-4999-91bb-0429b9fc9f3b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 120 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_STEP_J1"
+		(shape bidirectional)
+		(at 180 70 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d2703d73-1fb9-4186-8620-2f5f3a926e9b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 70 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "24V_MOTOR"
+		(shape bidirectional)
+		(at 180 145 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e84359f5-6f06-43a9-bd40-8126a23da43c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 145 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

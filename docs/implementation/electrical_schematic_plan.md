@@ -2,6 +2,8 @@
 
 This is the KiCad-ready block plan for the robot arm electrical system. It describes how the schematic should be split into sheets and what each sheet should contain.
 
+**KiCad project (draft):** [hardware/kicad/robot_arm/robot_arm.kicad_pro](../../hardware/kicad/robot_arm/robot_arm.kicad_pro)
+
 ## 1. Top-Level Power Flow
 
 ```text

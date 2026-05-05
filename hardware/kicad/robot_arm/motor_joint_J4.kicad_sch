@@ -1,0 +1,162 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "1d88b305-0749-4d28-8784-086036091614")
+	(paper "A3")
+	(title_block
+		(title "Motor driver J4")
+		(date "2026-05-04")
+		(rev "0.1")
+	)
+	(lib_symbols)
+	(text "Joint J4 - CL42T closed-loop kit\nClosed-loop (CL): motor phases + encoder harness from kit; logic PUL/DIR/ENA (5V) + ALARM -> DRV_ALARM_J4\nTMC2209: VM=24V_MOTOR, GND, STEP/DIR/EN from MCU (3.3V); verify MS/DIAG pins on YOUR carrier.\n\nNetclass hint: MotorPower"
+		(exclude_from_sim no)
+		(at 12 12 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "391c62dc-3bff-441b-a116-897b4949d276")
+	)
+	(global_label "STM32_EN_J4"
+		(shape bidirectional)
+		(at 180 100 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "13d45da6-be8e-4630-899e-64f1656928ff")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 100 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_DIR_J4"
+		(shape bidirectional)
+		(at 180 85 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "368638a2-f1fd-4493-bf42-edd4704eda1d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 85 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "24V_MOTOR"
+		(shape bidirectional)
+		(at 180 145 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3fd0e7ca-108e-496c-a530-9b977228d60a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 145 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "GND_MOTOR"
+		(shape bidirectional)
+		(at 180 165 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "48b04785-999d-43d8-9816-0010f3139bd7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 165 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_STEP_J4"
+		(shape bidirectional)
+		(at 180 70 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e1322068-73f5-4487-a473-60ce1e802179")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 70 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "DRV_ALARM_J4"
+		(shape bidirectional)
+		(at 180 120 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f1a8457b-0838-46d1-a71e-85e092a5f46d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 120 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

@@ -5,6 +5,7 @@ A 6-Degree of Freedom (6-DOF) robotic arm project. This repository contains the 
 ## Directory Structure
 
 * `/docs` - Project design documents and specifications.
+* `/hardware` - KiCad electrical drafts (`hardware/kicad/robot_arm/`) and component PDFs (`hardware/datasheets/`, see `hardware/datasheets/README.txt` for source URLs).
 * `/cad` - Mechanical design files (SolidWorks/Fusion 360).
 * `/firmware` - Low-level C/C++ code for ESP32/STM32 microcontrollers.
 * `/software` - High-level control software for Raspberry Pi 3 (ROS 2, kinematics).

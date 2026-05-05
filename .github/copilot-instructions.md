@@ -30,7 +30,7 @@ This repository is a 6-DOF robot arm project split across mechanical design, emb
   - Run tests from `simulation/` with `pytest`.
 - Firmware:
   - Work inside `firmware/stm32_core/` with PlatformIO.
-  - Use the configured `genericSTM32F401CC` environment.
+  - Use the configured `nucleo_f401re` environment (Nucleo-F401RE).
 
 ## Conventions And Pitfalls
 - Do not treat `software/ros2_ws/build`, `software/ros2_ws/install`, or `software/ros2_ws/log` as source; they are generated ROS artifacts.
