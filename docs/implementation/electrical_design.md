@@ -29,12 +29,14 @@ The 24V rail is **stepped down** to lower voltages for logic components:
 
 | Rail | Voltage | Consumers |
 |:---|:---|:---|
-| Logic 5V | 5V | STM32 (via USB or 5V pin), 74HC245 level shifters, Hall sensors |
-| Logic 3.3V | 3.3V | STM32 internal (regulated on-board from 5V) |
-| Pi Power | 5V/3A | Raspberry Pi 3 (via dedicated buck converter for isolation) |
+| Logic 5V | 5V | 74HC245, Hall sensors; **Nucleo** may take **5 V** from this rail **or** from the ST-Link USB port (never **24 V**) |
+| Logic 3.3V | 3.3V | **STM32 core and GPIO** at **3.3 V** — **Nucleo onboard regulator** derives this from the board’s **5 V** (outputs are **~3.3 V**, not 5 V) |
+| Pi Power | 5V/≥3A | Raspberry Pi 4 (via dedicated buck converter for isolation; size for peak CPU + USB load) |
 | Servo 5V | 5V | MG996R gripper only (third buck or UBEC from `24V_MOTOR`; not shared with logic/Pi rails) |
 
 The LM2596-based buck converter modules are compact and inexpensive. A **separate** buck converter powers the Pi to isolate it from the motor noise on the main logic 5V rail.
+
+**STM32 dev board vs “3.3 V” confusion**: The **microcontroller GPIO** uses **3.3 V logic levels** (a pin driven HIGH is ~3.3 V, not 5 V). The **Nucleo-F401RE** is normally powered from **5 V USB** (ST-Link port) or the board’s 5 V input; the board’s LDO creates **3.3 V** for the STM32 chip. **STEP/DIR from the MCU are therefore 3.3 V signals** — the **74HC245** shifts them to **5 V** for CL57T/CL42T inputs configured for 5 V TTL. Do **not** connect the **24 V motor rail** to any STM32 or Nucleo logic pin.
 
 ### 1c. Safety — E-Stop & IEC C14 Inlet
 
@@ -48,7 +50,7 @@ The LM2596-based buck converter modules are compact and inexpensive. A **separat
 The system uses a **two-tier compute architecture** to separate real-time motor control from high-level planning:
 
 ```
-[ Raspberry Pi 3 ]          <-- High-Level (ROS 2, MoveIt 2, IK/FK)
+[ Raspberry Pi 4 ]          <-- High-Level (ROS 2, MoveIt 2, IK/FK)
         |
     USB / UART
         |
@@ -61,7 +63,7 @@ The system uses a **two-tier compute architecture** to separate real-time motor 
 NEMA23x2   NEMA17x2   NEMA14x2
 ```
 
-- The **Raspberry Pi 3** runs ROS 2 in Docker containers. It handles trajectory planning, inverse kinematics, and user-facing interfaces. It does **not** perform any real-time motor control.
+- The **Raspberry Pi 4** runs ROS 2 in Docker containers. It handles trajectory planning, inverse kinematics, and user-facing interfaces. It does **not** perform any real-time motor control.
 - The **STM32** is a hard-real-time microcontroller. It runs a >1 kHz control loop, generates STEP/DIR pulses, reads encoder feedback, and executes PID corrections.
 
 ---
@@ -147,7 +149,7 @@ To avoid point-to-point breadboard wiring in the final assembly, a **custom perf
 - Screw terminals for 5V logic power and ground
 - Pads for the 74HC245 level shifter IC
 - I2C header for TCA9548A multiplexer
-- UART header for Raspberry Pi connection
+- UART header for Raspberry Pi 4 connection
 
 ---
 
