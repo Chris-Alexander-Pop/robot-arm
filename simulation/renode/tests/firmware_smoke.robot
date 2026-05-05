@@ -24,6 +24,6 @@ Load Firmware
     Execute Command    set ROOT "${ROOT}"
     Execute Command    include @${ROOT}/simulation/renode/nucleo_f401re.resc
     ${ABS_ROOT}=    Normalize Path    ${ROOT}
-    Execute Command    sysbus LoadELF @${ABS_ROOT}/firmware/stm32_core/.pio/build/genericSTM32F401CC_renode/firmware.elf
+    Execute Command    sysbus LoadELF @${ABS_ROOT}/firmware/stm32_core/.pio/build/nucleo_f401re_renode/firmware.elf
     Create Terminal Tester    sysbus.usart2
     Start Emulation

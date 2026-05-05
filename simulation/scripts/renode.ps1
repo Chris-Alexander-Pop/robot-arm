@@ -12,7 +12,7 @@ if (Test-Path $LocalRenode) {
     throw "renode is not installed. Run .\setup.ps1 first."
 }
 
-${FirmwareElf} = (Join-Path $RootDir "firmware/stm32_core/.pio/build/genericSTM32F401CC_renode/firmware.elf") -replace '\\', '/'
+${FirmwareElf} = (Join-Path $RootDir "firmware/stm32_core/.pio/build/nucleo_f401re_renode/firmware.elf") -replace '\\', '/'
 
 Set-Location $RootDir
 & $RenodeBin --disable-xwt --console -e "i @$RenodeScript; sysbus LoadELF @${FirmwareElf}; start"

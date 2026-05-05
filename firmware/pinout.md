@@ -1,6 +1,8 @@
 # STM32F401RE Pinout Decisions
 
 This document tracks the pin assignment strategy for the STM32F401RE firmware target.
+
+**Board alignment:** Matches `platformio.ini`: **Nucleo-F401RE** (`board = nucleo_f401re`).
 It is intentionally a design note, not a generated CubeMX file.
 The current firmware code is still a scaffold, so the final pin map should be reviewed
 again before hardware bring-up.
