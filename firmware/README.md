@@ -7,6 +7,7 @@ Domain-level firmware area for low-level embedded control.
 
 ## Onboarding
 - Open `firmware/stm32_core/` as the PlatformIO project root.
+- Default MCU target is **Nucleo-F401RE**: PlatformIO env `nucleo_f401re` (hardware) and `nucleo_f401re_renode` (Renode). Host tests use `native`.
 - Build from Linux/macOS with `firmware/scripts/build.sh`.
 - Build from Windows with `firmware/scripts/build.ps1`.
 - Use the PlatformIO VS Code extension so `Arduino.h` and other board headers resolve correctly.

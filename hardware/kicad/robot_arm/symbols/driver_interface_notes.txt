@@ -1,0 +1,14 @@
+Hierarchical / harness-oriented labels (draft)
+
+Closed-loop CL57T / CL42T (kit wiring - confirm on shipped manual):
+  Logic (5V TTL mode): PUL (STEP), DIR, ENA (ENABLE), ALRM (fault to MCU), GND, +5V logic ref if required by terminal layout
+  Power: V+/V- or DC+/DC- (24V_MOTOR bus)
+  Motor: A+/A-/B+/B- or UVW naming per silkscreen
+  Encoder: preassembled cable to driver - no STM32 AS5600 on J1-J4
+
+TMC2209 breakout (typical STEP/DIR module):
+  VM: 24V_MOTOR
+  GND: common return
+  STEP, DIR, EN: from STM32 (3.3V - verify EN polarity)
+  DIAG or SG: optional stall sense (not in current firmware contract)
+  MS1, MS2 or CFG pins: microstep selection per module silkscreen

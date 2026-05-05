@@ -41,7 +41,7 @@ jobs:
 
       - name: Build firmware ELF
         working-directory: firmware/stm32_core
-        run: pio run -e genericSTM32F401CC
+        run: pio run -e nucleo_f401re
 
       - name: Run Renode smoke test
         uses: antmicro/renode-test-action@v5
