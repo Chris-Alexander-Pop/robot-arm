@@ -1,4 +1,5 @@
 #include "control/joint_controller.h"
+#include "drivers/stepper_driver.h"
 #include "test_harness.h"
 
 namespace {
@@ -30,7 +31,8 @@ void FillJointState(robot_arm::JointState& state) {
 }  // namespace
 
 void run_joint_controller_tests(TestContext& test) {
-  robot_arm::JointController controller;
+  robot_arm::StepperDriver stepper_driver;
+  robot_arm::JointController controller(stepper_driver);
 
   const robot_arm::JointCommand& default_command = controller.command();
   const robot_arm::JointState& default_state = controller.measured_state();
