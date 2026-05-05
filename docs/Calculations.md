@@ -127,7 +127,7 @@ Closed-loop stepper drivers set motor current via DIP switch or software. The va
 
 | Component | Voltage | Current | Source |
 |:---|:---:|:---:|:---|
-| Raspberry Pi 3 | 5V | 2.5A | Dedicated LM2596 buck |
+| Raspberry Pi 4 | 5V | 3.0A (budget peak) | Dedicated LM2596 buck (size for CPU + USB peripherals) |
 | STM32 | 5V (USB) | ~0.5A | Shared LM2596 |
 | 4× Closed-loop drivers (logic) | 5V | ~0.2A | Shared LM2596 |
 | 2× TMC2209 | 3.3V | ~0.1A | STM32 3.3V rail |

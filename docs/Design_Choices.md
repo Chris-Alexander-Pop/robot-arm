@@ -133,7 +133,7 @@ The worst-case torque at J3 is **3.27 Nm**. A 3:1 GT2 belt drive (the practical 
 
 ### 2b. STM32 + Raspberry Pi Hierarchy over Single-Board Solution
 
-**Decision**: Use a **two-tier compute architecture** (STM32 for real-time, RPi 3 for planning) rather than trying to do everything on one device.
+**Decision**: Use a **two-tier compute architecture** (STM32 for real-time, RPi 4 for planning) rather than trying to do everything on one device.
 
 **Why not Raspberry Pi alone?**
 Linux is not a real-time OS. Even with `PREEMPT_RT` patches, the Pi's scheduler can introduce millisecond-scale jitter in motor control loops. Stepper motors require microsecond-precise pulse timing. A 1ms timing jitter causes audible vibration and velocity ripple.
@@ -179,7 +179,7 @@ An Arduino Mega or ESP32 can generate precise step pulses, but has insufficient 
 
 Writing a custom equivalent would take months and would lack the testing coverage of industry-standard packages.
 
-**Trade-off**: ROS 2 on a Raspberry Pi 3 is computationally heavy. Running in Docker adds overhead. However, for a 6-DOF pick-and-place arm with a 1–2 second cycle time, the Pi 3 is capable. If latency becomes an issue, migrating to a Pi 4/5 or a small x86 NUC is straightforward — the ROS 2 code is identical.
+**Trade-off**: ROS 2 on a Raspberry Pi remains computationally heavy. Running in Docker adds overhead. The **Pi 4** improves headroom over older Pi generations for MoveIt / planning; if latency becomes an issue, migrating to a Pi 5 or a small x86 NUC is straightforward — the ROS 2 code is identical.
 
 ---
 

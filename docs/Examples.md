@@ -82,7 +82,7 @@ Niryo explicitly chose **Dynamixel servos for J4–J6** (wrist) specifically to 
 |:---|:---|:---|
 | Dynamixel XL430 at wrist (71g, 1.4 Nm) | NEMA 14 14HS10-0404S (130g, 0.14 Nm) | Dynamixel is 2× lighter but 10× more expensive ($50/unit) |
 | Parallel-jaw gripper with servo | MG996R servo-actuated gripper | Same concept; MG996R is a low-cost substitute |
-| Raspberry Pi as compute unit | Raspberry Pi 3 | ✅ Same compute platform |
+| Raspberry Pi as compute unit | Raspberry Pi 4 | ✅ Same compute platform |
 | ROS 2 + MoveIt for planning | ROS 2 + MoveIt 2 | ✅ Same software stack |
 | 300g payload limit | 0.5–1.0 kg target | Our larger motors and gearing allow heavier loads |
 
@@ -144,7 +144,7 @@ The UR5e is the professional baseline. It defines what the architecture of a mod
 
 | Arm | Payload | Reach | Gearing | Controller | Cost | Open Source |
 |:---|:---:|:---:|:---|:---|:---:|:---:|
-| **This Project** | 0.5–1 kg | 630mm | Cycloidal + belt | STM32 + RPi3 + ROS 2 | ~$700 CAD | ✅ |
+| **This Project** | 0.5–1 kg | 630mm | Cycloidal + belt | STM32 + RPi 4 + ROS 2 | ~$700 CAD | ✅ |
 | AR4 | 2.0 kg | 650mm | Planetary | Arduino + ROS | ~$1,500 USD | ✅ |
 | BCN3D Moveo | ~0.5 kg | 550mm | Belt only | Arduino MEGA | ~$500 USD | ✅ |
 | Niryo Ned 2 | 0.3 kg | 440mm | Belt + direct | RPi + ROS 2 | ~$2,000 USD | Partial |
