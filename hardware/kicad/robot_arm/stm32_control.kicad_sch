@@ -1,0 +1,866 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "b63c3a15-39dc-40f8-8b83-14df5cdc997f")
+	(paper "A3")
+	(title_block
+		(title "STM32 control + level shifting")
+		(date "2026-05-04")
+		(rev "0.1")
+	)
+	(lib_symbols)
+	(text "STM32 + Pi (sheet Sec.2c) - Nucleo-F401RE assumed (see docs/implementation/electrical_interface_map.md Sec.5)\n- STEP/DIR/ENABLE J1-J4: 3.3V MCU -> 74HC245 -> 5V CL57T/CL42T (set drivers for 5V TTL inputs)\n- STEP/DIR/ENABLE J5-J6: 3.3V MCU -> TMC2209 carriers (module pinout varies - verify Amazon breakout)\n- UART: Pi <-> STM32 (e.g. USART1 PA9/PA10 candidates - confirm on Nucleo)\n- I2C1: PB6/PB7 -> TCA9548A -> optional AS5600 on J5/J6\n- Six DRV_ALARM inputs (active-low); GRIPPER_PWM -> servo signal"
+		(exclude_from_sim no)
+		(at 12 12 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1c7ea969-4aa4-4e2b-84a6-f218e2b352f9")
+	)
+	(global_label "HOME_J6"
+		(shape bidirectional)
+		(at 157 175 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "061a518f-f789-4528-8e13-9e567a7d72a8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 157 175 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "UART_TX_TO_STM32"
+		(shape bidirectional)
+		(at 220 95 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "14b33a3c-392d-44a5-ad4c-a5e42b13c4d9")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 220 95 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "DRV_ALARM_J6"
+		(shape bidirectional)
+		(at 157 150 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "24b90eae-41c0-4bb1-9119-b80eb9b59cf1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 157 150 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_DIR_J5"
+		(shape bidirectional)
+		(at 142 103 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "25923697-f61f-43d4-8b7d-047b68a365ec")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 142 103 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_DIR_J2"
+		(shape bidirectional)
+		(at 70 103 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3164574e-0314-441d-8d21-d44c368c9f97")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 70 103 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_EN_J4"
+		(shape bidirectional)
+		(at 118 118 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3aa21043-7bb6-4ac4-a470-cc8c44e54cbb")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 118 118 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "GRIPPER_PWM"
+		(shape bidirectional)
+		(at 220 165 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3e347907-5104-4ac7-9dd9-590437560ec7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 220 165 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_EN_J1"
+		(shape bidirectional)
+		(at 46 118 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "417d3731-894c-4a5d-a5ba-f967904d7e3e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 46 118 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "UART_RX_FROM_STM32"
+		(shape bidirectional)
+		(at 220 110 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4aacd904-be1a-46b0-840d-6b4770d3bbf6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 220 110 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_EN_J2"
+		(shape bidirectional)
+		(at 70 118 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4c1049e4-82cf-4d61-a266-e76cf2942614")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 70 118 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "DRV_ALARM_J3"
+		(shape bidirectional)
+		(at 91 150 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4ddaea62-bf1e-42e2-b9e2-7798bcfa019b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 91 150 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_DIR_J1"
+		(shape bidirectional)
+		(at 46 103 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5700e4be-f2bf-49ce-b872-bf9f447e226f")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 46 103 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_EN_J3"
+		(shape bidirectional)
+		(at 94 118 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5718232a-6f30-4246-8de0-58316cfbb365")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 94 118 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "DRV_ALARM_J4"
+		(shape bidirectional)
+		(at 113 150 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b6e08bd-e800-44cb-9075-46cb4eaa99ce")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 113 150 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "DRV_ALARM_J2"
+		(shape bidirectional)
+		(at 69 150 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5d8073db-70d3-4c81-8ccb-e8d385397ced")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 69 150 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "HOME_J3"
+		(shape bidirectional)
+		(at 91 175 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "604d9824-633a-4748-a483-13357fcd46cc")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 91 175 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_DIR_J3"
+		(shape bidirectional)
+		(at 94 103 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "63a289a9-bcd9-439e-945d-b28b04c4e488")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 94 103 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_STEP_J3"
+		(shape bidirectional)
+		(at 94 88 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "66f6085d-6754-475a-9316-f12f6266f16a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 94 88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "I2C_SDA"
+		(shape bidirectional)
+		(at 220 145 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6b20c4b7-346d-4e71-9aba-b4904845e345")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 220 145 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_STEP_J2"
+		(shape bidirectional)
+		(at 70 88 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6b9f161b-c6f1-4e39-944e-d96b30d7a232")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 70 88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_DIR_J6"
+		(shape bidirectional)
+		(at 166 103 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8873b2a1-7191-4364-b8a3-e1c9d390699d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 166 103 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "DRV_ALARM_J5"
+		(shape bidirectional)
+		(at 135 150 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8a0e8ef3-652c-4844-a7f2-b4014e66e339")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 135 150 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "5V_SERVO"
+		(shape bidirectional)
+		(at 220 180 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "920116cf-89af-44d4-86db-6809198ef7ae")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 220 180 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_STEP_J1"
+		(shape bidirectional)
+		(at 46 88 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a7dc0b05-28c6-4dc8-986e-6d01b2f2a8d7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 46 88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_STEP_J6"
+		(shape bidirectional)
+		(at 166 88 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b067367d-6750-40ad-b8cb-7daa2040f0af")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 166 88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "GND_LOGIC"
+		(shape bidirectional)
+		(at 220 210 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b937c014-fd2a-4681-9a32-f1bd616385d4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 220 210 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "5V_LOGIC"
+		(shape bidirectional)
+		(at 220 195 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ba5d15d4-f480-47c5-92a5-fe5c604011cf")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 220 195 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_STEP_J4"
+		(shape bidirectional)
+		(at 118 88 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "cf0d9b4e-bb8f-4e01-84e7-b7b3230fd4b0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 118 88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_STEP_J5"
+		(shape bidirectional)
+		(at 142 88 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d4ff6aa2-1253-40c5-8138-3243f5edeaa6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 142 88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_EN_J6"
+		(shape bidirectional)
+		(at 166 118 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d791c72d-e562-4520-a1be-2df64d8d8cb2")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 166 118 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "HOME_J5"
+		(shape bidirectional)
+		(at 135 175 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ec1e4b53-5cc9-4303-8c60-ecab50957d8b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 135 175 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_DIR_J4"
+		(shape bidirectional)
+		(at 118 103 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ef90ad82-cf01-4e13-aedf-658b0c0428e8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 118 103 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "I2C_SCL"
+		(shape bidirectional)
+		(at 220 130 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ef9c5dbe-0a16-4d9d-81c7-37b47ed43ff6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 220 130 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "HOME_J1"
+		(shape bidirectional)
+		(at 47 175 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "efbb464b-0ace-4371-8112-b9b13b9a80ee")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 47 175 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_EN_J5"
+		(shape bidirectional)
+		(at 142 118 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f1b60e76-a130-4a3b-b94b-16d4278ccc50")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 142 118 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "HOME_J4"
+		(shape bidirectional)
+		(at 113 175 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f2cd235e-3b0c-407d-9d0d-f6f5b0d586ed")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 113 175 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "HOME_J2"
+		(shape bidirectional)
+		(at 69 175 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f7606933-f4e1-4d23-a675-6a73435821b1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 69 175 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "DRV_ALARM_J1"
+		(shape bidirectional)
+		(at 47 150 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fae86507-e537-437e-92ae-f39e7ce9ec81")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 47 150 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
