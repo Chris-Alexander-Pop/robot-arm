@@ -11,4 +11,4 @@ if ! command -v pio >/dev/null 2>&1; then
 fi
 
 cd "$PROJECT_DIR"
-pio run -e genericSTM32F401CC
+pio run -e nucleo_f401re

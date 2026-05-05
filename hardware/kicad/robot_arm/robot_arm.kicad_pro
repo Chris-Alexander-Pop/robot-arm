@@ -1,0 +1,78 @@
+{
+  "board": {
+    "design_settings": {
+      "defaults": {},
+      "diff_pair_dimensions": [],
+      "drc_exclusions": [],
+      "rules": {},
+      "track_widths": [],
+      "via_dimensions": []
+    }
+  },
+  "boards": [],
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "meta": {
+    "filename": "robot_arm.kicad_pro",
+    "version": 1
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "bus_width": 12.0,
+        "clearance": 1.0,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "MotorPower",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 2.0,
+        "via_diameter": 1.6,
+        "via_drill": 0.8,
+        "wire_width": 6.0,
+        "uuid": "a1d2e3f4-a1d2-a1d2-a1d2-a1d2e3f4a1d2"
+      },
+      {
+        "bus_width": 12.0,
+        "clearance": 0.25,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Logic",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.35,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
+        "wire_width": 6.0,
+        "uuid": "b2c3d4e5-b2c3-b2c3-b2c3-b2c3d4e5b2c3"
+      }
+    ],
+    "meta": {
+      "version": 3
+    },
+    "net_colors": [],
+    "netclass_assignments": {
+      "24V_MOTOR": "MotorPower",
+      "GND_MOTOR": "MotorPower",
+      "5V_LOGIC": "Logic",
+      "5V_PI": "Logic",
+      "5V_SERVO": "Logic",
+      "GND_LOGIC": "Logic"
+    }
+  },
+  "pcbnew": {
+    "page_layout_descr_file": ""
+  },
+  "sheets": [],
+  "text_variables": {}
+}

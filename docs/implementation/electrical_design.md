@@ -32,6 +32,7 @@ The 24V rail is **stepped down** to lower voltages for logic components:
 | Logic 5V | 5V | STM32 (via USB or 5V pin), 74HC245 level shifters, Hall sensors |
 | Logic 3.3V | 3.3V | STM32 internal (regulated on-board from 5V) |
 | Pi Power | 5V/3A | Raspberry Pi 3 (via dedicated buck converter for isolation) |
+| Servo 5V | 5V | MG996R gripper only (third buck or UBEC from `24V_MOTOR`; not shared with logic/Pi rails) |
 
 The LM2596-based buck converter modules are compact and inexpensive. A **separate** buck converter powers the Pi to isolate it from the motor noise on the main logic 5V rail.
 
@@ -97,7 +98,7 @@ The NEMA 14 wrist motors are driven by TMC2209 modules, the standard for silent,
 The STM32 outputs **3.3V logic** signals (STEP/DIR). The CL57T and CL42T industrial drivers expect **5V logic** levels. The 74HC245 octal bus transceiver shifts all 3.3V STEP/DIR signals to 5V:
 
 - 1 chip handles 4 signal pairs (8 lines) — one per joint per direction
-- Powered by the 5V logic rail; DIR pin ties to the 24V signal enable
+- Powered from `5V_LOGIC`; wire `DIR` (direction select) and `/OE` per the manufacturer datasheet so **STM32-side ports see 3.3 V CMOS inputs** and **driver-side ports drive 5 V** toward the CL57T/CL42T inputs (often **B→A** when shifting “up” toward the motor driver)
 
 ---
 
