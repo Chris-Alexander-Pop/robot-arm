@@ -20,6 +20,9 @@ Thumbs.db
 # SolidWorks: lock files when a file is open (~$name.SLDXXX)
 ~$*
 
+# KiCAD lock files
+*.lck
+
 # Local/generated reports and snapshots
 log.html
 report.html

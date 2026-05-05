@@ -1,72 +1,54 @@
-#include <array>
 #include <cstdlib>
-#include <Arduino.h>
-#include <AccelStepper.h>
-#include <Wire.h>
-#include <AS5600.h>
 
-#include "drivers/stepper_driver.h"
+#include <Arduino.h>
+
+#include "control/joint_controller.h"
 #include "core/types.h"
+#include "drivers/encoder_driver.h"
+#include "drivers/stepper_driver.h"
 #include "protocol/packet_codec.h"
 
-// --- Pin Definitions ---
-// Uses AccelStepper::DRIVER (1 pin for step, 1 for dir)
-#define MOTOR1_STEP_PIN 2
-#define MOTOR1_DIR_PIN  3
+// --- Global driver and controller instances ---
+// stepper_driver must be declared before joint_controller (constructor takes a reference).
+static robot_arm::StepperDriver stepper_driver;
+static robot_arm::EncoderDriver encoder_driver;
+static robot_arm::JointController joint_controller(stepper_driver);
+static robot_arm::PacketCodec packet_codec;
 
-// --- Motor & Encoder Objects ---
-AccelStepper stepper1(AccelStepper::DRIVER, MOTOR1_STEP_PIN, MOTOR1_DIR_PIN);
-AS5600 encoder1(&Wire);
+// --- Command framing constants ---
+constexpr size_t kCommandFrameSize    = 28U;
+constexpr size_t kHeartbeatFrameSize  = 4U;
+constexpr size_t kStateFrameSize      = 52U;
 
-// --- PID control variables ---
-float target_angle = 0.0;
-float current_angle = 0.0;
-float kp = 10.0; // Proportional gain placeholder
-robot_arm::PacketCodec packet_codec;
-robot_arm::JointState joint_state{};
-robot_arm::StepperDriver stepper_driver;
-
-std::array<float, robot_arm::kJointCount> target_joint_positions_deg{};
-std::array<float, robot_arm::kJointCount> current_joint_positions_deg{};
-std::array<float, robot_arm::kJointCount> current_joint_velocities_deg_s{};
-
-constexpr size_t kCommandFrameSize = 28U;
-constexpr size_t kHeartbeatFrameSize = 4U;
-constexpr size_t kStateFrameSize = 52U;
 constexpr unsigned long kStatePublishPeriodMs = 20UL;
-constexpr unsigned long kHeartbeatTimeoutMs = 2000UL;
+constexpr unsigned long kHeartbeatTimeoutMs   = 2000UL;
 
-uint8_t command_frame[kCommandFrameSize]{};
-size_t command_frame_size = 0U;
-unsigned long last_state_publish_ms = 0UL;
-unsigned long last_heartbeat_ms = 0UL;
+static uint8_t command_frame[kCommandFrameSize]{};
+static size_t command_frame_size      = 0U;
+static unsigned long last_state_publish_ms = 0UL;
+static unsigned long last_heartbeat_ms     = 0UL;
+static unsigned long last_loop_ms          = 0UL;
 
 #ifdef ROBOT_ARM_RENODE
 constexpr size_t kRenodeCommandBufferSize = 32U;
-char renode_command_buffer[kRenodeCommandBufferSize]{};
-size_t renode_command_size = 0U;
+static char renode_command_buffer[kRenodeCommandBufferSize]{};
+static size_t renode_command_size = 0U;
 
-void handle_renode_command_line(const char* line) {
-  const float parsed_angle = static_cast<float>(std::strtod(line, nullptr));
-  target_joint_positions_deg[0] = parsed_angle;
-  target_angle = parsed_angle;
+static void handle_renode_command_line(const char* line) {
+  robot_arm::JointCommand command{};
+  command.target_position_deg[0] = static_cast<float>(std::strtod(line, nullptr));
+  joint_controller.SetCommand(command);
   Serial.print("Received serial command: ");
-  Serial.println(parsed_angle, 1);
+  Serial.println(command.target_position_deg[0], 1);
   Serial.print("New target angle: ");
-  Serial.println(parsed_angle, 2);
+  Serial.println(command.target_position_deg[0], 2);
 }
 #endif
 
-void publish_state() {
-  joint_state.position_deg[0] = current_angle;
-  joint_state.velocity_deg_s[0] = current_joint_velocities_deg_s[0];
-  for (int joint = 1; joint < robot_arm::kJointCount; ++joint) {
-    joint_state.position_deg[joint] = target_joint_positions_deg[joint];
-    joint_state.velocity_deg_s[joint] = 0.0F;
-  }
-
+static void publish_state() {
+  const robot_arm::JointState& state = joint_controller.measured_state();
   uint8_t state_frame[kStateFrameSize]{};
-  const size_t encoded = packet_codec.EncodeJointState(joint_state, state_frame, sizeof(state_frame));
+  const size_t encoded = packet_codec.EncodeJointState(state, state_frame, sizeof(state_frame));
   if (encoded == kStateFrameSize) {
     Serial.write(state_frame, encoded);
   }
@@ -78,23 +60,16 @@ void setup() {
   while (!Serial && (millis() - serial_wait_start_ms) < 2000UL) {
     delay(10);
   }
+
   Serial.println("STM32 Robot Arm Controller Initializing...");
-  Serial.println("STM32 Robot Arm Controller Ready.");
-  last_heartbeat_ms = millis();
+
   stepper_driver.Init();
-  
-#ifndef ROBOT_ARM_RENODE
-  // Initialize I2C for AS5600 encoders (Uses standard SDA/SCL pins)
-  Serial.println("Initializing I2C encoder interface.");
-  Wire.begin();
-  encoder1.begin();
-#else
-  Serial.println("Renode mode: skipping I2C encoder interface.");
-#endif
-  
-  // Setup Motor Profile
-  stepper1.setMaxSpeed(2000.0);
-  stepper1.setAcceleration(500.0);
+  encoder_driver.Init();
+
+  last_heartbeat_ms = millis();
+  last_loop_ms      = millis();
+
+  Serial.println("STM32 Robot Arm Controller Ready.");
 }
 
 void loop() {
@@ -103,6 +78,11 @@ void loop() {
    * This should run as fast as possible (>1000 Hz) to maintain smooth stepping.
    */
 
+  const unsigned long now_ms = millis();
+  const float dt_s = static_cast<float>(now_ms - last_loop_ms) * 0.001F;
+  last_loop_ms = now_ms;
+
+  // 1. Receive serial commands and update the joint controller target.
 #ifdef ROBOT_ARM_RENODE
   while (Serial.available() > 0) {
     const int byte_value = Serial.read();
@@ -157,7 +137,7 @@ void loop() {
 
     if (command_frame_size == kHeartbeatFrameSize && command_frame[2] == 0x12U) {
       if (packet_codec.DecodeHeartbeat(command_frame, kHeartbeatFrameSize)) {
-        last_heartbeat_ms = millis();
+        last_heartbeat_ms = now_ms;
         publish_state();
       }
       command_frame_size = 0U;
@@ -167,61 +147,43 @@ void loop() {
     if (command_frame_size == kCommandFrameSize) {
       robot_arm::JointCommand decoded_command{};
       if (packet_codec.DecodeJointCommand(command_frame, kCommandFrameSize, &decoded_command)) {
-        for (int joint = 0; joint < robot_arm::kJointCount; ++joint) {
-          target_joint_positions_deg[joint] = decoded_command.target_position_deg[joint];
-        }
-        target_angle = target_joint_positions_deg[0];
+        joint_controller.SetCommand(decoded_command);
         Serial.print("Received target joint 1 angle: ");
-        Serial.println(target_angle);
+        Serial.println(decoded_command.target_position_deg[0]);
       }
       command_frame_size = 0U;
     }
   }
 #endif
-  
-  // 2. Read true position from the magnetic encoder
-  // AS5600 returns 0-4095. This scales it to 0-360 degrees.
-#ifndef ROBOT_ARM_RENODE
-  current_angle = encoder1.readAngle() * (360.0 / 4096.0);
-#else
-  current_angle = 0.0;
-#endif
-  current_joint_positions_deg[0] = current_angle;
-  for (int joint = 1; joint < robot_arm::kJointCount; ++joint) {
-    current_joint_positions_deg[joint] = target_joint_positions_deg[joint];
-  }
-  
-  // 3. Simple P-control effort calculation
+
+  // 2. Read encoder positions and feed them into the joint controller.
+  //    EncoderDriver::ReadJointAngleDeg() returns stub/simulated values until
+  //    the ARDUINO TODO in encoder_driver.cpp is implemented.
+  robot_arm::JointState measured{};
   for (int joint = 0; joint < robot_arm::kJointCount; ++joint) {
-    float error = target_joint_positions_deg[joint] - current_joint_positions_deg[joint];
-    float speed = error * kp;
+    measured.position_deg[joint]  = encoder_driver.ReadJointAngleDeg(joint);
+    measured.velocity_deg_s[joint] = 0.0F;
+  }
+  joint_controller.UpdateFromSensors(measured);
 
-    if (speed > 2000.0) speed = 2000.0;
-    if (speed < -2000.0) speed = -2000.0;
+  // 3. Run one PID control step.
+  //    No-op until JointController::Step() TODO is implemented.
+  joint_controller.Step(dt_s);
 
-    current_joint_velocities_deg_s[joint] = speed;
-    stepper_driver.SetJointVelocityDegS(joint, speed);
+  // 4. Output STEP/DIR signals.
+  //    No-op until StepperDriver::Tick() TODO is implemented.
+  stepper_driver.Tick();
 
-    if (joint == 0) {
-      target_angle = target_joint_positions_deg[0];
-      stepper1.setSpeed(speed);
-    }
+  // 5. Heartbeat watchdog: zero the command if the host goes silent.
+  if ((now_ms - last_heartbeat_ms) >= kHeartbeatTimeoutMs) {
+    joint_controller.SetCommand(robot_arm::JointCommand{});
   }
 
-  const unsigned long now_ms = millis();
+  // 6. Periodic state publish.
 #ifndef ROBOT_ARM_RENODE
   if ((now_ms - last_state_publish_ms) >= kStatePublishPeriodMs) {
     publish_state();
     last_state_publish_ms = now_ms;
   }
 #endif
-
-  if ((now_ms - last_heartbeat_ms) >= kHeartbeatTimeoutMs) {
-    current_joint_velocities_deg_s[0] = 0.0F;
-  }
-  
-  // 4. Output the STEP/DIR signals based on the active speed.
-  // This must be called constantly!
-  stepper1.runSpeed();
-  stepper_driver.Tick();
 }
