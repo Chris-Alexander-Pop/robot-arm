@@ -1,0 +1,162 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "705639cc-689e-49b2-a662-7576d454da52")
+	(paper "A3")
+	(title_block
+		(title "Motor driver J5")
+		(date "2026-05-04")
+		(rev "0.1")
+	)
+	(lib_symbols)
+	(text "Joint J5 - TMC2209 carrier + NEMA14\nClosed-loop (CL): motor phases + encoder harness from kit; logic PUL/DIR/ENA (5V) + ALARM -> DRV_ALARM_J5\nTMC2209: VM=24V_MOTOR, GND, STEP/DIR/EN from MCU (3.3V); verify MS/DIAG pins on YOUR carrier.\n\nNetclass hint: MotorPower"
+		(exclude_from_sim no)
+		(at 12 12 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "85d9ea0b-4961-45af-bd42-6e0374022524")
+	)
+	(global_label "STM32_EN_J5"
+		(shape bidirectional)
+		(at 180 100 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "302701e7-7531-4d89-8ed0-0016d705bca8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 100 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "GND_MOTOR"
+		(shape bidirectional)
+		(at 180 165 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3d851492-8884-4ebd-be0d-f4b1d4e9b8bd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 165 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "24V_MOTOR"
+		(shape bidirectional)
+		(at 180 145 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4ec28718-87fb-4688-9801-0c8b86f4ce8c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 145 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "DRV_ALARM_J5"
+		(shape bidirectional)
+		(at 180 120 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "52282e4d-bc58-4121-8338-1288e4f8dec0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 120 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_STEP_J5"
+		(shape bidirectional)
+		(at 180 70 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "77ca8855-5ee5-4f11-a80b-99ad86e83f40")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 70 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "STM32_DIR_J5"
+		(shape bidirectional)
+		(at 180 85 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f0aa8d98-36f2-43b4-aa09-1db757d4a0ba")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 180 85 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

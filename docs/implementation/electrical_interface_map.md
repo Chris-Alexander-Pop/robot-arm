@@ -10,6 +10,7 @@ This document defines the electrical interfaces for the robot arm at the contrac
 | 24V motor rail | Out | 24V DC | PSU | Motor drivers | Main actuator power |
 | 5V logic rail | Out | 5V DC | Buck converter | STM32, logic ICs, sensors | Isolated from motor rail where practical |
 | Pi 5V rail | Out | 5V DC | Dedicated buck converter | Raspberry Pi | Kept separate from noisy motor logic rail |
+| Servo 5V rail | Out | 5V DC | Third buck from `24V_MOTOR` | MG996R gripper only | Isolated from `5V_LOGIC` / `5V_PI` for stall-current spikes |
 | STEP signals | Out | 3.3V -> 5V | STM32 | 74HC245 -> drivers | One per joint |
 | DIR signals | Out | 3.3V -> 5V | STM32 | 74HC245 -> drivers | One per joint |
 | ENABLE signals | Out | 3.3V -> 5V | STM32 | 74HC245 -> drivers | One per joint |
@@ -70,9 +71,19 @@ A common 6-pin control header can be used for each motor channel:
 - Motor power and logic power should not share a connector unless the connector is explicitly rated for the combined load.
 - Each joint should be wired so that a missing encoder or sensor cannot energize the motor unexpectedly.
 
-## 5. Open Items
+## 5. Frozen electrical decisions (for schematic + harness)
 
-- Final STM32 GPIO numbers.
+These choices unblock KiCad net naming and firmware pin mapping reviews:
+
+| Topic | Decision | Notes |
+|:---|:---|:---|
+| ALARM / fault lines | **Six independent active-low inputs** to the MCU (`DRV_ALARM_J1` … `DRV_ALARM_J6`) | Pull-ups on the controller board; optional RC at the driver if the manual recommends noise suppression |
+| MG996R gripper power | **`5V_SERVO` rail** from a **third** LM2596 (or UBEC) fed from `24V_MOTOR` | Do **not** share `5V_LOGIC` or `5V_PI`; star ground at the PSU return |
+| Closed-loop driver logic level | **5 V TTL mode** on each CL57T / CL42T (DIP / jumper per vendor manual) | Matches `74HC245` outputs; verify against the exact driver revision (`V41` kits) |
+| MCU / dev board for diagrams | **STM32 Nucleo-F401RE** (`STM32F401RET6`) | Schematics and [firmware/pinout.md](../../firmware/pinout.md) match `platformio.ini` (`nucleo_f401re`) |
+
+## 6. Open Items
+
+- Final STM32 GPIO numbers (CubeMX / Nucleo pinmux vs firmware `pinout.md`).
 - Exact connector family for the control box and joint harnesses.
 - Whether J5 and J6 get AS5600 feedback immediately or stay open-loop for phase 1.
-- Whether ALARM is wired as a shared fault bus or as six independent inputs.
