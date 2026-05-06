@@ -53,10 +53,11 @@ For this project, the preferred pattern is:
 
 This keeps the motion-control path independent of local development convenience.
 
-### 3. Use I2C for all encoder feedback
+### 3. Reserve one I2C bus for optional wrist feedback
 
-The AS5600 sensors and any I2C expander should live on one shared bus.
-Recommended bus selection:
+J1–J4 use closed-loop driver kits whose factory motor encoder is read **inside the driver**; the STM32 never touches I2C for those joints. The shared I2C bus on this design only matters for the **optional** AS5600 add-on at J5 / J6.
+
+Recommended bus selection (kept reserved even when no AS5600 is fitted, so a Phase 2 retrofit is a wiring change rather than a firmware redesign):
 
 - `I2C1` on `PB6` (SCL) and `PB7` (SDA)
 
@@ -65,7 +66,7 @@ Reasons:
 - Common on STM32F4 boards
 - Easy to route
 - Leaves the higher-value pins free for time-critical signals
-- Can support a TCA9548A or other I2C expansion if multiple encoders need to be addressed
+- A TCA9548A multiplexer is only required if **both** J5 and J6 get an AS5600 (since both share the fixed `0x36` address). With one wrist encoder, the AS5600 sits directly on the bus.
 
 ### 4. Keep STEP/DIR pins on plain GPIO unless hardware timers are proven necessary
 
@@ -109,9 +110,7 @@ This keeps the firmware simple and makes it easy to map each joint to a controll
 
 ### Encoder feedback
 
-Use a single I2C bus for all magnetic encoders.
-If the final hardware uses multiple AS5600 sensors, a TCA9548A multiplexer can keep the bus
-addressing simple and avoid having to assign extra dedicated pins per encoder.
+For J1–J4, position comes from the closed-loop driver itself (RS-485 from the CL57T / CL42T) — no STM32 GPIO is consumed by the driver-side encoder. For J5 / J6, the optional wrist AS5600 (if fitted) lives on `I2C1`. A TCA9548A multiplexer is needed only when both wrist AS5600 boards are populated, since they share the fixed `0x36` address.
 
 ### Fault handling
 
