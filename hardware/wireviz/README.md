@@ -10,7 +10,8 @@ Text-based wiring docs for the 6-DOF arm. YAML in, SVG / HTML / PNG out via [Wir
 | `20_control_signals.yml` | STM32 Nucleo-F401RE pins, 74HC245 level shift, six driver control headers, Pi UART link. |
 | `30_joint_J1_closed_loop.yml` | Detail of one closed-loop joint (CL57T + NEMA 23 + **factory encoder bundled with the kit**). Pattern repeats for J1–J4 (CL42T for J3/J4). |
 | `40_joint_J5_open_loop.yml` | Detail of one open-loop wrist joint (TMC2209 + NEMA 14). AS5600 shown as an optional Phase 2 part — most builds skip it. Same shape for J6. |
-| `50_sensor_bus.yml` | Six A3144 Hall HOME sensors (one per joint, always populated) plus the **optional** AS5600 / TCA9548A path that only matters if J5 or J6 actually get an AS5600 fitted. |
+| `50_homing.yml` | Six A3144 Hall HOME sensors only — compact diagram for the harness you always build. |
+| `55_wrist_encoders.yml` | Optional Phase 2 path: STM32 I2C to TCA9548A and two AS5600 boards (J5/J6 only). Omit entirely if you skip wrist encoders. |
 | `60_end_effector.yml` | MG996R gripper servo (mounts inside the gripper body, not the arm), `5V_SERVO` rail, PWM signal across the J6 tool flange, optional FSR. |
 
 These follow the contracts in:
@@ -66,13 +67,13 @@ Windows (PowerShell):
 .\scripts\render-wireviz.ps1 -Formats hsp
 ```
 
-The script picks up every `*.yml` in this folder automatically — drop a new harness file in here and rerun. Output goes to `out/` (gitignored).
+The script picks up every `*.yml` except `_common.yml` (prepended into every render for shared Graphviz spacing and colors). Drop a new harness file in here and rerun. Output goes to `out/` (gitignored).
 
 Render a single file:
 
 ```bash
 ./scripts/render-wireviz.sh 30_joint_J1_closed_loop          # by basename
-./scripts/render-wireviz.sh hardware/wireviz/50_sensor_bus.yml  # by path
+./scripts/render-wireviz.sh hardware/wireviz/55_wrist_encoders.yml  # by path
 ```
 
 Or call WireViz directly if you prefer:
@@ -114,6 +115,7 @@ WireViz emits Graphviz DOT under the hood. Two pitfalls cause render failures:
 
 Other conventions used here:
 
+- **`_common.yml`** — shared `options:` and a small `tweak.append` graph directive (`nodesep`, `ranksep`) so diagrams space out consistently. Large motor drivers are split into several logical connector blocks (same physical CL57T or TMC2209) so WireViz does not draw one 15–20-pin vertical tower.
 - Wire colors follow the [WireViz color codes](https://github.com/wireviz/WireViz/blob/master/docs/syntax.md#wire-colors) (`RD`, `BK`, `WH`, etc.).
 - Every cable that crosses the cabinet boundary is `shield: true`.
 - Joint-by-joint cables (`W_CTRL_J1` … `W_CTRL_J6`) use the same color code so a real harness label survives a swap between channels.

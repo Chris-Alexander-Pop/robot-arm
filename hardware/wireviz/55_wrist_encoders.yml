@@ -1,0 +1,69 @@
+# 55_wrist_encoders — OPTIONAL Phase 2 path only (J5 / J6 AS5600).
+# J1–J4 use the factory encoder inside the CL57T / CL42T driver kit — no AS5600.
+# TCA9548A only needed if BOTH wrist boards are fitted (both use I2C addr 0x36).
+
+connectors:
+  MCU:
+    type: STM32 Nucleo-F401RE
+    subtype: I2C1 PB6/PB7 when wrist encoders are populated
+    pinlabels:
+      - PB6
+      - PB7
+      - GND_L
+      - P5V_LOGIC
+
+  MUX:
+    type: TI TCA9548A
+    subtype: OPTIONAL only if both J5 and J6 AS5600 fitted
+    pinlabels:
+      - VCC
+      - GND_L
+      - SCL_in
+      - SDA_in
+      - SC4
+      - SD4
+      - SC5
+      - SD5
+    notes: One wrist AS5600 only — wire PB6/PB7 straight to that board and omit mux.
+
+  AS5600_J5:
+    type: AS5600 board (OPTIONAL J5)
+    subtype: Phase 2 only
+    pinlabels: [VCC, GND, SCL, SDA, DIR, OUT]
+
+  AS5600_J6:
+    type: AS5600 board (OPTIONAL J6)
+    subtype: Phase 2 only
+    pinlabels: [VCC, GND, SCL, SDA, DIR, OUT]
+
+cables:
+  W_MUX_BUS:
+    category: bundle
+    wirelabels: [SCL, SDA, P5V_LOGIC, GND_L]
+    gauge: 24 AWG
+    colors: [YE, GN, RD, BK]
+    shield: true
+    length: 0.1
+
+  W_ENC_J5:
+    category: bundle
+    wirelabels: [VCC, GND, SCL, SDA]
+    gauge: 26 AWG
+    colors: [RD, BK, YE, GN]
+    shield: true
+    length: 1.5
+
+  W_ENC_J6:
+    category: bundle
+    wirelabels: [VCC, GND, SCL, SDA]
+    gauge: 26 AWG
+    colors: [RD, BK, YE, GN]
+    shield: true
+    length: 1.5
+
+connections:
+  - [MCU: [PB6, PB7, P5V_LOGIC, GND_L], W_MUX_BUS: [1-4], MUX: [SCL_in, SDA_in, VCC, GND_L]]
+  - [MUX: [SC4, SD4], W_ENC_J5: [3, 4], AS5600_J5: [SCL, SDA]]
+  - [MUX: [VCC, GND_L], W_ENC_J5: [1, 2], AS5600_J5: [VCC, GND]]
+  - [MUX: [SC5, SD5], W_ENC_J6: [3, 4], AS5600_J6: [SCL, SDA]]
+  - [MUX: [VCC, GND_L], W_ENC_J6: [1, 2], AS5600_J6: [VCC, GND]]

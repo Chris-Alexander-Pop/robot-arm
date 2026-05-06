@@ -8,6 +8,7 @@ WV_DIR="$ROOT_DIR/hardware/wireviz"
 OUT_DIR="$WV_DIR/out"
 VENV_DIR="$WV_DIR/.venv"
 WIREVIZ="$VENV_DIR/bin/wireviz"
+COMMON_YAML="$WV_DIR/_common.yml"
 
 FORMATS="hs"
 CLEAN=0
@@ -21,7 +22,7 @@ Usage: $(basename "$0") [-f FORMATS] [-c] [-q] [FILE ...]
   -c           Wipe hardware/wireviz/out/ before rendering
   -q           Suppress per-file wireviz output (just print [ok]/[FAIL])
   FILE ...     Optional list of YAML files (paths or basenames). Default: every
-               *.yml in hardware/wireviz/.
+               *.yml in hardware/wireviz/ except leading-underscore helpers.
 
 Examples:
   $(basename "$0")                          # render all, HTML+SVG
@@ -74,8 +75,17 @@ if [[ $# -gt 0 ]]; then
   done
 else
   shopt -s nullglob
-  TARGETS=("$WV_DIR"/*.yml)
+  TARGETS=()
+  for f in "$WV_DIR"/*.yml; do
+    [[ "$(basename "$f")" == _* ]] && continue
+    TARGETS+=("$f")
+  done
   shopt -u nullglob
+fi
+
+PREPEND_ARGS=()
+if [[ -f "$COMMON_YAML" ]]; then
+  PREPEND_ARGS=(-p "$COMMON_YAML")
 fi
 
 if [[ ${#TARGETS[@]} -eq 0 ]]; then
@@ -87,7 +97,7 @@ fail=0
 for src in "${TARGETS[@]}"; do
   base="$(basename "$src" .yml)"
   if [[ $QUIET -eq 1 ]]; then
-    if "$WIREVIZ" "$src" -o "$OUT_DIR" -O "$base" -f "$FORMATS" >/dev/null 2>&1; then
+    if "$WIREVIZ" "${PREPEND_ARGS[@]}" "$src" -o "$OUT_DIR" -O "$base" -f "$FORMATS" >/dev/null 2>&1; then
       echo "[ok]   $base"
     else
       echo "[FAIL] $base"
@@ -95,7 +105,7 @@ for src in "${TARGETS[@]}"; do
     fi
   else
     echo "=== $base ==="
-    if ! "$WIREVIZ" "$src" -o "$OUT_DIR" -O "$base" -f "$FORMATS"; then
+    if ! "$WIREVIZ" "${PREPEND_ARGS[@]}" "$src" -o "$OUT_DIR" -O "$base" -f "$FORMATS"; then
       fail=$((fail + 1))
     fi
   fi
