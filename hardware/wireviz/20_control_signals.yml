@@ -1,0 +1,178 @@
+# 20_control_signals
+# STM32 Nucleo-F401RE -> 74HC245 (3.3V to 5V shift) -> 6 driver control headers.
+# J5/J6 use TMC2209 which can accept 3.3V directly (kept on the same harness for symmetry).
+# Sources: firmware/pinout.md candidate map; docs/implementation/electrical_interface_map.md sec 3a.
+
+connectors:
+  MCU:
+    type: STM32 Nucleo-F401RE
+    subtype: STM32F401RET6
+    pinlabels:
+      - P5V_IN     #  1 board 5V (E5V or USB)
+      - GND_L      #  2 logic ground
+      - PB0        #  3 J1 STEP
+      - PB1        #  4 J1 DIR
+      - PB10       #  5 J2 STEP
+      - PB11       #  6 J2 DIR
+      - PB12       #  7 J3 STEP
+      - PB13       #  8 J3 DIR
+      - PB14       #  9 J4 STEP
+      - PB15       # 10 J4 DIR
+      - PC6        # 11 J5 STEP
+      - PC7        # 12 J5 DIR
+      - PC8        # 13 J6 STEP
+      - PC9        # 14 J6 DIR
+      - PA9        # 15 USART1 TX (Pi)
+      - PA10       # 16 USART1 RX (Pi)
+      - PB6        # 17 I2C1 SCL
+      - PB7        # 18 I2C1 SDA
+    notes: Pin map per firmware/pinout.md. ENABLE and ALARM lines TBD - listed on the driver header.
+
+  HC245:
+    type: 74HC245
+    subtype: octal bus transceiver, 3.3V to 5V
+    pinlabels:
+      - P5V_LOGIC  # Vcc
+      - GND_L
+      - DIR        # bus direction strap (tied per A to B)
+      - OE_n       # output enable (tie low)
+      - A1         # 3.3V side - J1 STEP from MCU
+      - A2         # 3.3V side - J1 DIR
+      - A3         # 3.3V side - J1 ENABLE
+      - A4         # spare / repeat per joint on a second device
+      - B1         # 5V side - to driver J1 STEP
+      - B2         # 5V side - to driver J1 DIR
+      - B3         # 5V side - to driver J1 ENABLE
+      - B4         # 5V side - to spare
+    notes: Use one 74HC245 per pair of joints (J1+J2, J3+J4). J5/J6 may bypass and feed TMC2209 directly.
+
+  CTRL_J1:
+    type: 6-pin control header (per electrical_interface_map sec 3a)
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    notes: To CL57T J1 driver.
+  CTRL_J2:
+    type: 6-pin control header
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    notes: To CL57T J2 driver.
+  CTRL_J3:
+    type: 6-pin control header
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    notes: To CL42T J3 driver.
+  CTRL_J4:
+    type: 6-pin control header
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    notes: To CL42T J4 driver.
+  CTRL_J5:
+    type: 6-pin control header
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    notes: To TMC2209 J5 carrier (3.3V-tolerant; ENABLE active-low).
+  CTRL_J6:
+    type: 6-pin control header
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    notes: To TMC2209 J6 carrier.
+
+  PI:
+    type: Raspberry Pi 4
+    subtype: ROS 2 host (UART link only on this sheet)
+    pinlabels: [GPIO14_TX, GPIO15_RX, GND_L]
+
+cables:
+  W_MCU_TO_245_J12:
+    category: bundle
+    wirelabels: [STEP_J1, DIR_J1, ENABLE_J1, STEP_J2, DIR_J2, ENABLE_J2]
+    gauge: 24 AWG
+    colors: [WH, YE, GN, OG, BU, VT]
+    length: 0.05
+    notes: Short ribbon from STM32 header to first 74HC245 (A side).
+
+  W_CTRL_J1:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.0
+    notes: To J1 driver. ALARM is active-low input back to MCU (keep on same shielded bundle to reduce harness count).
+  W_CTRL_J2:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.0
+  W_CTRL_J3:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.0
+  W_CTRL_J4:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.0
+  W_CTRL_J5:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.2
+  W_CTRL_J6:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.2
+
+  W_PI:
+    category: bundle
+    wirelabels: [TX_to_RX, RX_from_TX, GND_L]
+    gauge: 24 AWG
+    colors: [WH, GY, BK]
+    length: 0.3
+
+connections:
+  # MCU -> 74HC245 A side (J1+J2 pair shown; second IC for J3+J4 mirrors this)
+  -
+    - MCU: [PB0, PB1]
+    - W_MCU_TO_245_J12: [1, 2]
+    - HC245: [A1, A2]
+  -
+    - MCU: [PB10, PB11]
+    - W_MCU_TO_245_J12: [4, 5]
+    - HC245: [A3, A4]
+
+  # 74HC245 B side -> driver control headers (J1, J2)
+  - [HC245: [B1, B2, B3], W_CTRL_J1: [1-3], CTRL_J1: [STEP, DIR, ENABLE]]
+  - [HC245: [B4],         W_CTRL_J2: [1],   CTRL_J2: [STEP]]
+
+  # ALARM and reference returned alongside the same 6-pin control bundle
+  - [MCU: [GND_L], W_CTRL_J1: [5], CTRL_J1: [GND_L]]
+  - [MCU: [P5V_IN], W_CTRL_J1: [6], CTRL_J1: [P5V_REF]]
+  - [MCU: [PB13], W_CTRL_J1: [4], CTRL_J1: [ALARM]]   # placeholder ALARM pin
+
+  - [MCU: [GND_L], W_CTRL_J2: [5], CTRL_J2: [GND_L]]
+  - [MCU: [P5V_IN], W_CTRL_J2: [6], CTRL_J2: [P5V_REF]]
+  - [MCU: [PB14], W_CTRL_J2: [4], CTRL_J2: [ALARM]]
+
+  # J3 / J4 closed-loop (assume identical 74HC245 on the protoboard - shown logically here)
+  - [MCU: [PB12, PB13], W_CTRL_J3: [1-2], CTRL_J3: [STEP, DIR]]
+  - [MCU: [GND_L, P5V_IN], W_CTRL_J3: [5-6], CTRL_J3: [GND_L, P5V_REF]]
+
+  - [MCU: [PB14, PB15], W_CTRL_J4: [1-2], CTRL_J4: [STEP, DIR]]
+  - [MCU: [GND_L, P5V_IN], W_CTRL_J4: [5-6], CTRL_J4: [GND_L, P5V_REF]]
+
+  # J5 / J6 open-loop TMC2209 - 3.3V direct from MCU (no level shift required)
+  - [MCU: [PC6, PC7], W_CTRL_J5: [1-2], CTRL_J5: [STEP, DIR]]
+  - [MCU: [GND_L, P5V_IN], W_CTRL_J5: [5-6], CTRL_J5: [GND_L, P5V_REF]]
+
+  - [MCU: [PC8, PC9], W_CTRL_J6: [1-2], CTRL_J6: [STEP, DIR]]
+  - [MCU: [GND_L, P5V_IN], W_CTRL_J6: [5-6], CTRL_J6: [GND_L, P5V_REF]]
+
+  # Pi UART link (lives on the same controller board)
+  - [MCU: [PA9, PA10, GND_L], W_PI: [1-3], PI: [GPIO15_RX, GPIO14_TX, GND_L]]
