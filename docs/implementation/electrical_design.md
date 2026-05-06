@@ -110,12 +110,16 @@ The STM32 outputs **3.3V logic** signals (STEP/DIR). The CL57T and CL42T industr
 
 The closed-loop kits (CL57T and CL42T) include a **motor-mounted encoder**. The driver reads this internally, closing the current loop without STM32 involvement. The STM32 can still query the driver's actual position register over RS-485 for position telemetry if needed.
 
-### 4b. AS5600 Magnetic Encoders (J5–J6 Optional / Secondary)
+### 4b. AS5600 Magnetic Encoders (Optional, J5–J6 only)
 
-For open-loop wrist joints or secondary absolute confirmation:
+> **AS5600 is not part of the J1–J4 wiring.** The closed-loop CL57T/CL42T kits (sec 4a) close the position loop **inside the driver** using their bundled motor encoder. Adding an AS5600 to those joints is redundant and is **not** in the design.
+
+For the open-loop wrist joints, AS5600 is treated as a **Phase 2 / contingency** part:
+
+- **When to add it**: only if measured open-loop drift on J5 or J6 becomes unacceptable in practice. Wrist precision is usually dominated by gear backlash and tool inertia, not stepper resolution, so most builds will skip the AS5600 entirely.
 - **Principle**: A small diametrically magnetized magnet glued to the motor shaft rotates above the AS5600 IC. The IC measures field angle and outputs 12-bit position (0–4095 counts per revolution) over I2C.
-- **Address Conflict**: All AS5600s share the fixed I2C address `0x36`. An **I2C multiplexer (TCA9548A)** is required to address them individually.
-- **Resolution**: 12 bits = 4096 steps/rev → **0.088°/count** raw; with microstepping this allows extremely fine angular measurements.
+- **Address conflict**: All AS5600s share the fixed I2C address `0x36`. A **TCA9548A** multiplexer is therefore only needed if **both** wrist encoders are fitted; one AS5600 alone can sit directly on the STM32 I2C bus.
+- **Resolution**: 12 bits = 4096 steps/rev → **0.088°/count** raw, well under what the wrist mechanically resolves anyway.
 
 ### 4c. A3144 Hall Effect Sensors — Homing
 

@@ -5,7 +5,7 @@ A 6-Degree of Freedom (6-DOF) robotic arm project. This repository contains the 
 ## Directory Structure
 
 * `/docs` - Project design documents and specifications.
-* `/hardware` - KiCad electrical drafts (`hardware/kicad/robot_arm/`) and component PDFs (`hardware/datasheets/`, see `hardware/datasheets/README.txt` for source URLs).
+* `/hardware` - KiCad electrical drafts (`hardware/kicad/robot_arm/`), component PDFs (`hardware/datasheets/`, see `hardware/datasheets/README.txt` for source URLs), and optional WireViz harness tooling (`hardware/wireviz/`, run `./scripts/create-wireviz-venv.sh`).
 * `/cad` - Mechanical design files (SolidWorks/Fusion 360).
 * `/firmware` - Low-level C/C++ code for ESP32/STM32 microcontrollers.
 * `/software` - High-level control software for Raspberry Pi 4 (ROS 2, kinematics).
@@ -32,7 +32,7 @@ These scripts:
 
 Tracked project files use **repository-relative** paths only (e.g. `${workspaceFolder}` in VS Code, `ROOT_DIR` derived from script paths in shell helpers). If you **move or rename** your clone directory, rerun `./setup.sh` / `.\setup.ps1` so the gitignored Renode wrapper under `.tooling/bin/` points at the portable Renode install under `.tooling/renode/` for your new location.
 
-Python virtual environments are only for the simulation and tooling workflows.
+Python virtual environments are used for simulation (`simulation/.venv`), ROS CLI tooling (`.tooling/`), and optional WireViz harness diagrams (`hardware/wireviz/.venv`).
 The firmware C++ project uses PlatformIO, not a Python venv.
 
 ## Dev Helpers

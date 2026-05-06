@@ -121,8 +121,15 @@ Motors generate significant heat. PETG's 80°C glass transition temperature prov
 ---
 
 ## 5. End-Effector
-- **Gripper Actuator**: `MG996R` metal-gear micro servo for the claw mechanism. Small, fast, and well-supported by existing ROS 2 packages.
-- **Optional Force Feedback**: A **Force Sensitive Resistor (FSR)** on the gripper fingertips can be integrated for a closed-loop grip-force PID, preventing crushing of delicate objects.
+
+The end-effector is a self-contained sub-assembly that bolts to the **J6 tool flange**. It is mechanically and electrically independent from the joint motors, which keeps tool changes from disturbing the arm wiring.
+
+- **Gripper Actuator — `MG996R` metal-gear micro servo**.
+  - **Mounting**: inside the gripper body itself (3D-printed claw / parallel-jaw assembly) that bolts to the J6 tool flange. The MG996R is **not** mounted in the arm wrist — J6 already has its own NEMA 14 stepper for tool roll. The gripper servo only opens / closes the jaws.
+  - **Power**: dedicated `5V_SERVO` rail from a third LM2596 buck off `24V_MOTOR` (see [electrical_design.md §1b](electrical_design.md)). It is **not** sharing the `5V_LOGIC` or `5V_PI` rails — stall spikes from the servo would otherwise glitch the MCU.
+  - **Signal**: a single ~50 Hz PWM line from one STM32 timer pin (e.g. `PA8 / TIM1_CH1`). 3.3 V drive is sufficient for a hobby servo's high-impedance signal pin, so no level shifter is required.
+  - **Wiring across the wrist**: all EOAT signals (`5V_SERVO`, `GND_M`, `PWM`, optional `FSR`) cross the wrist on a single 4-pin tool-flange connector. See [`hardware/wireviz/60_end_effector.yml`](../../hardware/wireviz/60_end_effector.yml).
+- **Optional Force Feedback**: a **Force Sensitive Resistor (FSR)** on the gripper fingertip pad, fed through a 10k voltage divider into a STM32 ADC pin. Enables a grip-force PID to prevent crushing delicate objects. Also lives inside the gripper body, not the arm.
 
 ---
 
