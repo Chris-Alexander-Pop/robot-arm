@@ -13,6 +13,7 @@ $WvDir = Join-Path $RootDir "hardware/wireviz"
 $OutDir = Join-Path $WvDir "out"
 $VenvDir = Join-Path $WvDir ".venv"
 $Wireviz = Join-Path $VenvDir "Scripts/wireviz.exe"
+$CommonYaml = Join-Path $WvDir "_common.yml"
 
 if (-not (Test-Path $Wireviz)) {
     throw "wireviz not found at $Wireviz. Run .\scripts\create-wireviz-venv.ps1 first."
@@ -42,7 +43,14 @@ if ($Files -and $Files.Count -gt 0) {
         }
     }
 } else {
-    $Targets = Get-ChildItem -Path $WvDir -Filter "*.yml" | Select-Object -ExpandProperty FullName
+    $Targets = Get-ChildItem -Path $WvDir -Filter "*.yml" |
+        Where-Object { $_.Name -notmatch '^_' } |
+        Select-Object -ExpandProperty FullName
+}
+
+$PrependArgs = @()
+if (Test-Path $CommonYaml) {
+    $PrependArgs = @("-p", $CommonYaml)
 }
 
 if ($Targets.Count -eq 0) {
@@ -53,7 +61,7 @@ $fail = 0
 foreach ($src in $Targets) {
     $base = [System.IO.Path]::GetFileNameWithoutExtension($src)
     if ($Quiet) {
-        & $Wireviz $src -o $OutDir -O $base -f $Formats *> $null
+        & $Wireviz @PrependArgs $src -o $OutDir -O $base -f $Formats *> $null
         if ($LASTEXITCODE -eq 0) {
             Write-Host "[ok]   $base"
         } else {
@@ -62,7 +70,7 @@ foreach ($src in $Targets) {
         }
     } else {
         Write-Host "=== $base ==="
-        & $Wireviz $src -o $OutDir -O $base -f $Formats
+        & $Wireviz @PrependArgs $src -o $OutDir -O $base -f $Formats
         if ($LASTEXITCODE -ne 0) { $fail++ }
     }
 }
