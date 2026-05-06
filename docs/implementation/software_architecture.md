@@ -1,13 +1,13 @@
-# Software Architecture (Raspberry Pi 3)
+# Software Architecture (Raspberry Pi 4)
 
 <!--
-This document details the high-level software stack running on the Raspberry Pi 3:
+This document details the high-level software stack running on the Raspberry Pi 4:
 OS, ROS 2 infrastructure, MoveIt 2 pipeline, hardware interface, and user-facing APIs.
 -->
 
 ## 1. Operating System & Environment
 
-- **OS**: Ubuntu 22.04 Server (64-bit) on Raspberry Pi 3
+- **OS**: Ubuntu 22.04 Server (64-bit) on Raspberry Pi 4
 - **ROS 2 Distribution**: ROS 2 Humble Hawksbill (LTS, supported through May 2027)
 - **Deployment**: All ROS 2 nodes run inside **Docker containers** managed by `docker-compose`. This keeps the host OS clean, makes the environment fully reproducible, and simplifies switching between simulation and hardware modes.
 
