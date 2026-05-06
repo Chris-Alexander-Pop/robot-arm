@@ -1,0 +1,18 @@
+# Prepended automatically by scripts/render-wireviz.{sh,ps1} (wireviz -p).
+# Shared Graphviz / styling only — no connectors here.
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  bgcolor_node: WH
+  bgcolor_connector: "#F8F8F8"
+  bgcolor_cable: "#FFFFFF"
+  bgcolor_bundle: "#FFFFF0"
+  color_mode: SHORT
+  mini_bom_mode: true
+
+# WireViz defaults: rankdir LR, ranksep 2, nodesep 0.33 — widen nodesep so
+# tall connector tables do not crowd adjacent blocks.
+tweak:
+  append:
+    - 'graph [nodesep="0.65", ranksep="2.5"]'
