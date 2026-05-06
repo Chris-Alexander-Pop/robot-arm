@@ -30,6 +30,8 @@ These scripts:
 - create `.tooling` and install local ROS CLI tools (`colcon`, `vcstool`, `rosdep`)
 - install Renode for the headless firmware simulation workflow
 
+Tracked project files use **repository-relative** paths only (e.g. `${workspaceFolder}` in VS Code, `ROOT_DIR` derived from script paths in shell helpers). If you **move or rename** your clone directory, rerun `./setup.sh` / `.\setup.ps1` so the gitignored Renode wrapper under `.tooling/bin/` points at the portable Renode install under `.tooling/renode/` for your new location.
+
 Python virtual environments are only for the simulation and tooling workflows.
 The firmware C++ project uses PlatformIO, not a Python venv.
 
