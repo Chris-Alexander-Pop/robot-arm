@@ -78,9 +78,9 @@ The STM32 microcontroller runs a **hard-real-time control loop** at ≥ 1 kHz:
 
 ---
 
-### 2c. Software (Raspberry Pi 3 — High-Level Control)
+### 2c. Software (Raspberry Pi 4 — High-Level Control)
 
-The Raspberry Pi 3 runs **ROS 2 Humble** in Docker containers, handling all compute-intensive, non-real-time tasks:
+The Raspberry Pi 4 runs **ROS 2 Humble** in Docker containers, handling all compute-intensive, non-real-time tasks:
 
 - **`robot_state_publisher`**: Publishes the URDF-based transform tree (`/tf`) from current `/joint_states`
 - **MoveIt 2 (`move_group`)**: Trajectory planning (OMPL), IK solving (TRAC-IK), collision checking, trajectory parameterization

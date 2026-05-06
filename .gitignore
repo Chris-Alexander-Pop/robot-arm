@@ -20,6 +20,19 @@ Thumbs.db
 # SolidWorks: lock files when a file is open (~$name.SLDXXX)
 ~$*
 
+# KiCad lock files
+*.lck
+
+# KiCad local history / recovery snapshots (not the canonical schematic;
+# may duplicate *.kicad_sch and should not be shared). Ignore entirely.
+**/.history/
+
+# KiCad automatic project backups (timestamped copies beside the project)
+**/*-backups/
+
+# KiCad regenerated footprint library cache (machine-local)
+**/fp-info-cache
+
 # Local/generated reports and snapshots
 log.html
 report.html
@@ -39,3 +52,6 @@ log/
 
 # Generic log files
 *.log
+
+# PlatformIO: compile_commands.json from `pio run -t compiledb` (large, regenerated locally)
+firmware/stm32_core/compile_commands.json

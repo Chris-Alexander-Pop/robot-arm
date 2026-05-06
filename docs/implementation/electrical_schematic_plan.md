@@ -14,7 +14,7 @@ AC mains
   -> 24V motor bus
   -> motor drivers
   -> logic buck converters
-  -> STM32 / sensors / Raspberry Pi
+  -> STM32 / sensors / Raspberry Pi 4
 ```
 
 ## 2. Recommended Schematic Sheets
@@ -33,7 +33,7 @@ Include:
 
 Include:
 - 24V to 5V buck converter for logic
-- Separate 24V to 5V buck converter for Raspberry Pi
+- Separate 24V to 5V buck converter for Raspberry Pi 4 (`5V_PI`, ≥3A capable)
 - Bulk capacitance on the 5V rail
 - Test points for 24V, 5V, and 3.3V
 
@@ -42,7 +42,7 @@ Include:
 Include:
 - STM32 header / breakout
 - 74HC245 level shifter
-- UART to Raspberry Pi
+- UART to Raspberry Pi 4
 - I2C bus to TCA9548A
 - STEP / DIR / ENABLE outputs
 - Fault inputs from driver ALARM pins
