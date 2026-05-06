@@ -39,14 +39,16 @@ jobs:
       - name: Install PlatformIO
         run: python -m pip install --upgrade pip platformio
 
+      # Renode smoke test loads nucleo_f401re_renode/firmware.elf (ROBOT_ARM_RENODE serial CLI).
       - name: Build firmware ELF
         working-directory: firmware/stm32_core
-        run: pio run -e nucleo_f401re
+        run: pio run -e nucleo_f401re -e nucleo_f401re_renode
 
+      # antmicro/renode-test-action does not expand ** globs; pass concrete paths.
       - name: Run Renode smoke test
         uses: antmicro/renode-test-action@v5
         with:
-          tests-to-run: simulation/renode/tests/**/*.robot
+          tests-to-run: simulation/renode/tests/firmware_smoke.robot
           artifacts-path: simulation/renode/test-results
           renode-arguments: >
             --variable ROOT:${{ github.workspace }}
