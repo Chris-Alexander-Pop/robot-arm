@@ -10,7 +10,7 @@
 		(rev "0.1")
 	)
 	(lib_symbols)
-	(text "STM32 + Pi (sheet Sec.2c) - Nucleo-F401RE assumed (see docs/implementation/electrical_interface_map.md Sec.5)\n- STEP/DIR/ENABLE J1-J4: 3.3V MCU -> 74HC245 -> 5V CL57T/CL42T (set drivers for 5V TTL inputs)\n- STEP/DIR/ENABLE J5-J6: 3.3V MCU -> TMC2209 carriers (module pinout varies - verify Amazon breakout)\n- UART: Pi <-> STM32 (e.g. USART1 PA9/PA10 candidates - confirm on Nucleo)\n- I2C1: PB6/PB7 -> TCA9548A -> optional AS5600 on J5/J6\n- Six DRV_ALARM inputs (active-low); GRIPPER_PWM -> servo signal"
+	(text "STM32 + Pi (sheet Sec.2c) - Nucleo-F401RE assumed (see docs/implementation/electrical_interface_map.md Sec.5)\n- PC flash/debug: USB A to Micro-B -> Nucleo ST-Link (5V bus power from PC; MCU core 3.3V on-board)\n- STEP/DIR/ENABLE J1-J4: 3.3V MCU -> 74HC245 -> 5V CL57T/CL42T (set drivers for 5V TTL inputs)\n- STEP/DIR/ENABLE J5-J6: 3.3V MCU -> TMC2209 carriers (module pinout varies - verify Amazon breakout)\n- UART: Pi 4 <-> STM32 (e.g. USART1 PA9/PA10 candidates - confirm on Nucleo)\n- I2C1: PB6/PB7 -> TCA9548A -> optional AS5600 on J5/J6\n- Six DRV_ALARM inputs (active-low); GRIPPER_PWM -> servo signal"
 		(exclude_from_sim no)
 		(at 12 12 0)
 		(effects

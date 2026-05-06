@@ -4,6 +4,7 @@ namespace robot_arm {
 
 class PidController {
  public:
+  PidController() : PidController(0.0F, 0.0F, 0.0F) {}
   PidController(float kp, float ki, float kd);
 
   float Update(float error, float dt_s);

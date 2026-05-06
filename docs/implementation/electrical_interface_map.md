@@ -9,11 +9,11 @@ This document defines the electrical interfaces for the robot arm at the contrac
 | AC mains in | In | Mains | Wall outlet | IEC inlet | Routed through fuse and E-stop |
 | 24V motor rail | Out | 24V DC | PSU | Motor drivers | Main actuator power |
 | 5V logic rail | Out | 5V DC | Buck converter | STM32, logic ICs, sensors | Isolated from motor rail where practical |
-| Pi 5V rail | Out | 5V DC | Dedicated buck converter | Raspberry Pi | Kept separate from noisy motor logic rail |
+| Pi 5V rail | Out | 5V DC | Dedicated buck converter | Raspberry Pi 4 | Kept separate from noisy motor logic rail; budget **≥3 A** peaks |
 | Servo 5V rail | Out | 5V DC | Third buck from `24V_MOTOR` | MG996R gripper only | Isolated from `5V_LOGIC` / `5V_PI` for stall-current spikes |
-| STEP signals | Out | 3.3V -> 5V | STM32 | 74HC245 -> drivers | One per joint |
-| DIR signals | Out | 3.3V -> 5V | STM32 | 74HC245 -> drivers | One per joint |
-| ENABLE signals | Out | 3.3V -> 5V | STM32 | 74HC245 -> drivers | One per joint |
+| STEP signals | Out | **3.3V MCU** → **5V** | STM32 GPIO | 74HC245 → drivers | MCU pins are **3.3 V logic**; industrial drivers use **5 V** after the **74HC245** |
+| DIR signals | Out | **3.3V MCU** → **5V** | STM32 GPIO | 74HC245 → drivers | Same level shifting as STEP |
+| ENABLE signals | Out | **3.3V MCU** → **5V** | STM32 GPIO | 74HC245 → drivers | Same level shifting as STEP |
 | ALARM / FAULT | In | Driver output | Drivers | STM32 | Active-low fault input assumed |
 | Hall home inputs | In | 5V or open-collector | A3144 sensors | STM32 | One per joint |
 | I2C SCL/SDA | Bi-dir | 3.3V or 5V via pullups | STM32 | TCA9548A / AS5600 | Shared bus, muxed if needed |
@@ -80,7 +80,8 @@ These choices unblock KiCad net naming and firmware pin mapping reviews:
 | ALARM / fault lines | **Six independent active-low inputs** to the MCU (`DRV_ALARM_J1` … `DRV_ALARM_J6`) | Pull-ups on the controller board; optional RC at the driver if the manual recommends noise suppression |
 | MG996R gripper power | **`5V_SERVO` rail** from a **third** LM2596 (or UBEC) fed from `24V_MOTOR` | Do **not** share `5V_LOGIC` or `5V_PI`; star ground at the PSU return |
 | Closed-loop driver logic level | **5 V TTL mode** on each CL57T / CL42T (DIP / jumper per vendor manual) | Matches `74HC245` outputs; verify against the exact driver revision (`V41` kits) |
-| MCU / dev board for diagrams | **STM32 Nucleo-F401RE** (`STM32F401RET6`) | Schematics and [firmware/pinout.md](../../firmware/pinout.md) match `platformio.ini` (`nucleo_f401re`) |
+| MCU / dev board for diagrams | **STM32 Nucleo-F401RE** (`STM32F401RET6`) | Schematics and [firmware/pinout.md](../../firmware/pinout.md) match `platformio.ini` (`nucleo_f401re`). **Power**: board expects **5 V** (e.g. ST-Link **Micro-B USB** from PC or bench supply); the MCU runs at **3.3 V** internally — see [electrical_design.md](electrical_design.md) §1b note. |
+| PC programming cable | **USB A – Micro-B** | **ST-Link / VCP** on the Nucleo (not the Pi’s USB-C power cord). Blue molded cables are common; rating/color does not change USB 2.0 behavior. |
 
 ## 6. Open Items
 
