@@ -1,0 +1,101 @@
+# 40_joint_J5_open_loop
+# Detail of one open-loop wrist joint (TMC2209 + NEMA 14).
+# Same shape applies to J6. Optional AS5600 magnetic encoder shown for
+# secondary absolute position (see electrical_design.md sec 4b).
+
+connectors:
+  CTRL_HEADER:
+    type: 6-pin control header
+    subtype: from controller protoboard
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    notes: TMC2209 accepts 3.3V logic directly - 74HC245 not required for J5/J6.
+
+  P24V_BUS:
+    type: 24V_MOTOR terminal block
+    pinlabels: [P24V, GND_M]
+
+  DRIVER:
+    type: TMC2209 carrier
+    subtype: STEP/DIR module (BIGTREETECH-style)
+    pinlabels:
+      - VM      #  1 motor supply (24V)
+      - GND_M   #  2 motor return
+      - VIO     #  3 logic supply (3.3V or 5V)
+      - GND_L   #  4 logic return
+      - STEP    #  5
+      - DIR     #  6
+      - EN      #  7 active-low enable
+      - DIAG    #  8 stall / fault output
+      - PDN     #  9 UART (optional, not used here)
+      - MS1     # 10 microstep config
+      - MS2     # 11 microstep config
+      - M1A     # 12 motor coil A1
+      - M1B     # 13 motor coil A2
+      - M2A     # 14 motor coil B1
+      - M2B     # 15 motor coil B2
+    notes: Verify pinout against your specific carrier silkscreen. VREF / current set is per-board (UART or trim pot).
+
+  MOTOR:
+    type: NEMA 14 stepper
+    subtype: pancake, low torque, quiet wrist motion
+    pinlabels: [A_p, A_n, B_p, B_n]
+
+  AS5600:
+    type: AS5600 magnetic encoder (OPTIONAL, Phase 2)
+    subtype: Skip unless open-loop drift is a measured problem
+    pinlabels: [VCC, GND, SCL, SDA, DIR, OUT]
+    notes: |
+      Wrist precision rarely matters for this arm. Most builds will leave
+      AS5600 unpopulated and rely on stepper microstepping + Hall homing.
+      If fitted, see 50_sensor_bus.yml for the I2C / mux details.
+
+cables:
+  W_PWR_J5:
+    category: bundle
+    wirelabels: [P24V, GND_M]
+    gauge: 22 AWG
+    colors: [RD, BK]
+    length: 0.4
+
+  W_CTRL_J5:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.2
+    notes: ALARM/DIAG carries the TMC2209 stall flag back to the controller.
+
+  W_MOTOR_J5:
+    category: bundle
+    wirelabels: [A_p, A_n, B_p, B_n]
+    gauge: 22 AWG
+    colors: [RD, BU, GN, BK]
+    length: 1.5
+
+  W_ENC_J5:
+    category: bundle
+    wirelabels: [VCC, GND, SCL, SDA]
+    gauge: 26 AWG
+    colors: [RD, BK, YE, GN]
+    shield: true
+    length: 1.5
+    notes: Routed alongside motor cable but in its own shielded sleeve.
+
+connections:
+  -
+    - P24V_BUS: [P24V, GND_M]
+    - W_PWR_J5: [1, 2]
+    - DRIVER: [VM, GND_M]
+
+  - [CTRL_HEADER: [STEP], W_CTRL_J5: [1], DRIVER: [STEP]]
+  - [CTRL_HEADER: [DIR],  W_CTRL_J5: [2], DRIVER: [DIR]]
+  - [CTRL_HEADER: [ENABLE], W_CTRL_J5: [3], DRIVER: [EN]]
+  - [CTRL_HEADER: [ALARM],  W_CTRL_J5: [4], DRIVER: [DIAG]]
+  - [CTRL_HEADER: [GND_L],  W_CTRL_J5: [5], DRIVER: [GND_L]]
+  - [CTRL_HEADER: [P5V_REF], W_CTRL_J5: [6], DRIVER: [VIO]]
+
+  - [DRIVER: [M1A, M1B, M2A, M2B], W_MOTOR_J5: [1-4], MOTOR: [A_p, A_n, B_p, B_n]]
+
+  # Optional AS5600 routed back to the I2C bus / TCA9548A.
+  - [CTRL_HEADER: [P5V_REF, GND_L], W_ENC_J5: [1, 2], AS5600: [VCC, GND]]

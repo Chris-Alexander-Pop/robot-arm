@@ -70,11 +70,13 @@ For the calculations behind these limits, see [`Calculations.md`](./Calculations
 - A **74HC245 level shifter is mandatory** in the signal path between the STM32 and the industrial drivers. Feeding 3.3V directly to a driver expecting 5V will result in unreliable triggering or complete failure to step.
 - **TMC2209** (NEMA 14 wrist drivers): Accept 3.3V logic natively — no level shifting required
 
-### 2c. I2C Addressing — HARD
+### 2c. I2C Addressing — HARD (only relevant if AS5600 is fitted)
 
-- All **AS5600 encoder ICs** share the fixed I2C address `0x36` (non-configurable in hardware)
-- A **TCA9548A I2C multiplexer** (address `0x70`) is **mandatory** to address multiple AS5600s from a single STM32 I2C bus
-- Maximum encoders per bus without additional muxing: **8** (TCA9548A has 8 channels) — sufficient for 6 joints
+- **AS5600 is NOT used on J1–J4.** The CL57T (J1/J2) and CL42T (J3/J4) closed-loop kits include a factory motor encoder that the driver reads internally. No external encoder, magnet, or I2C path is required for those joints.
+- AS5600 is **optional** on J5 / J6 only, and treated as a Phase 2 add-on if open-loop wrist drift turns out to be a measured problem in practice.
+- All **AS5600 encoder ICs** share the fixed I2C address `0x36` (non-configurable in hardware).
+- A **TCA9548A I2C multiplexer** (address `0x70`) is therefore only required if **two or more** AS5600 boards are fitted on the same bus. With zero or one wrist AS5600 the mux is unnecessary.
+- TCA9548A has 8 channels, so even the maximum AS5600 budget on this arm (J5 + J6) sits well within a single mux.
 
 ### 2d. Wiring — HARD
 

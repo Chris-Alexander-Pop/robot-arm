@@ -1,0 +1,125 @@
+# 30_joint_J1_closed_loop
+# Detail of one closed-loop joint (CL57T + NEMA 23). Pattern repeats for J1..J4
+# (CL42T for J3/J4, NEMA 17 motors). Confirm terminal silkscreen against the
+# vendor manual you actually shipped (see hardware/datasheets/StepperOnline_CL57T_V40.pdf).
+
+connectors:
+  CTRL_HEADER:
+    type: 6-pin control header
+    subtype: from controller protoboard (24V_MOTOR + control)
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    notes: Same harness shown in 20_control_signals.
+
+  P24V_BUS:
+    type: 24V_MOTOR terminal block
+    pinlabels: [P24V, GND_M]
+    notes: Branch off the main DIN bus block (10_power_distribution).
+
+  DRIVER:
+    type: StepperOnline CL57T
+    subtype: closed-loop driver, 5V TTL DIP setting
+    pinlabels:
+      - PUL_p   #  1 STEP+
+      - PUL_n   #  2 STEP-
+      - DIR_p   #  3 DIR+
+      - DIR_n   #  4 DIR-
+      - ENA_p   #  5 ENABLE+
+      - ENA_n   #  6 ENABLE-
+      - ALM_p   #  7 ALARM+
+      - ALM_n   #  8 ALARM-
+      - VDC_p   #  9 +24V power
+      - VDC_n   # 10 GND_M power
+      - A_p     # 11 motor phase A+
+      - A_n     # 12 motor phase A-
+      - B_p     # 13 motor phase B+
+      - B_n     # 14 motor phase B-
+      - ENC_VCC # 15 encoder +5V (factory cable)
+      - ENC_GND # 16 encoder GND
+      - ENC_A_p # 17 encoder A+
+      - ENC_A_n # 18 encoder A-
+      - ENC_B_p # 19 encoder B+
+      - ENC_B_n # 20 encoder B-
+    notes: Common-anode (P5V_REF tied to PUL+/DIR+/ENA+) - sink STEP/DIR/ENA on the - pins.
+
+  MOTOR:
+    type: NEMA 23 stepper
+    subtype: 2.0 Nm + factory encoder
+    pinlabels: [A_p, A_n, B_p, B_n, ENC_VCC, ENC_GND, ENC_A_p, ENC_A_n, ENC_B_p, ENC_B_n]
+    notes: Factory pre-assembled encoder pigtail. Do not splice.
+
+cables:
+  W_PWR_J1:
+    category: bundle
+    wirelabels: [P24V, GND_M]
+    gauge: 18 AWG
+    colors: [RD, BK]
+    length: 0.4
+
+  W_CTRL_J1:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.0
+    notes: Common-anode wiring - P5V_REF is shared by PUL+/DIR+/ENA+; STEP/DIR/ENABLE/ALARM all reference GND_L through this shield.
+
+  W_MOTOR_J1:
+    category: bundle
+    wirelabels: [A_p, A_n, B_p, B_n]
+    gauge: 18 AWG
+    colors: [RD, BU, GN, BK]
+    length: 1.5
+    notes: Silicone jacket. Routed through GX16 aviation connector and PET sleeving.
+
+  W_ENC_J1:
+    category: bundle
+    wirelabels: [VCC, GND, A_p, A_n, B_p, B_n]
+    gauge: 26 AWG
+    colors: [RD, BK, WH, GY, GN, YE]
+    shield: true
+    length: 1.5
+    notes: Factory encoder cable. Pinout follows the kit harness; do not rely on the colors above without checking the kit manual.
+
+connections:
+  -
+    - P24V_BUS: [P24V, GND_M]
+    - W_PWR_J1: [1, 2]
+    - DRIVER: [VDC_p, VDC_n]
+
+  # Common-anode wiring: at the driver, PUL+/DIR+/ENA+ are jumpered together
+  # and tied to P5V_REF. The MCU/74HC245 sinks each input via the -pin.
+  -
+    - CTRL_HEADER: [P5V_REF]
+    - W_CTRL_J1: [6]
+    - DRIVER: [PUL_p]
+  -
+    - CTRL_HEADER: [STEP]
+    - W_CTRL_J1: [1]
+    - DRIVER: [PUL_n]
+  -
+    - CTRL_HEADER: [DIR]
+    - W_CTRL_J1: [2]
+    - DRIVER: [DIR_n]
+  -
+    - CTRL_HEADER: [ENABLE]
+    - W_CTRL_J1: [3]
+    - DRIVER: [ENA_n]
+  -
+    - CTRL_HEADER: [ALARM]
+    - W_CTRL_J1: [4]
+    - DRIVER: [ALM_n]
+  -
+    - CTRL_HEADER: [GND_L]
+    - W_CTRL_J1: [5]
+    - DRIVER: [ALM_p]
+
+  -
+    - DRIVER: [A_p, A_n, B_p, B_n]
+    - W_MOTOR_J1: [1-4]
+    - MOTOR: [A_p, A_n, B_p, B_n]
+
+  -
+    - DRIVER: [ENC_VCC, ENC_GND, ENC_A_p, ENC_A_n, ENC_B_p, ENC_B_n]
+    - W_ENC_J1: [1-6]
+    - MOTOR: [ENC_VCC, ENC_GND, ENC_A_p, ENC_A_n, ENC_B_p, ENC_B_n]

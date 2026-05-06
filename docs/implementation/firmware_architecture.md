@@ -34,7 +34,7 @@ The timer auto-reloads at this period. No `delay()` calls, no busy-waiting. The 
 Although the CL57T and CL42T drivers handle their own internal closed-loop correction at the driver level, the STM32 can still run a **supervisory position control loop** at the system level when the firmware needs behavior above the driver's built-in correction:
 
 1. **Setpoint**: Target joint angle received from the Raspberry Pi (degrees).
-2. **Process Variable**: Current actual joint angle read from the driver or AS5600 encoder.
+2. **Process Variable**: Current actual joint angle. For J1–J4 this comes from the closed-loop driver itself (over RS-485 or the driver's internal step register). For J5–J6 it comes from the homed step counter, or from an AS5600 if one has been fitted as an optional add-on.
 3. **Error**: `e(t) = setpoint - actual`
 4. **PID Output**: Adjusts the step pulse frequency (velocity) fed to the driver.
 
@@ -54,15 +54,18 @@ It is not meant to replace the driver's own internal correction loop on J1-J4.
 
 > **For the open-loop TMC2209 wrist joints (J5/J6)**: The PID loop is effectively open-loop (encoder feedback not available by default). The STM32 simply commands position by counting pulses from the homed reference. If drift becomes a problem, AS5600 encoders can be added at the wrist.
 
-### 2c. Encoder Reading (I2C via TCA9548A)
+### 2c. Encoder Reading (I2C — optional path, J5/J6 only)
 
-When AS5600 encoders are connected:
-1. STM32 writes the target channel to the **TCA9548A** I2C multiplexer (address `0x70`)
-2. STM32 reads the 12-bit angle register from the **AS5600** (address `0x36`) on that channel
+> The CL57T / CL42T closed-loop kits on **J1–J4** report their position via the driver itself; the STM32 does not poll an external AS5600 for those joints. The I2C / mux code path only exists for **optional** wrist feedback on J5 / J6.
+
+When an AS5600 encoder is connected to a wrist joint:
+
+1. If both J5 and J6 are fitted with AS5600 boards, the STM32 first writes the target channel to the **TCA9548A** I2C multiplexer (address `0x70`). With only one wrist AS5600, the mux is omitted and the AS5600 is addressed directly.
+2. STM32 reads the 12-bit angle register from the **AS5600** (address `0x36`).
 3. Converts raw count (0–4095) to degrees: `angle_deg = (raw / 4096.0) * 360.0`
-4. Feeds the result into the PID loop as the process variable
+4. Feeds the result into the wrist joint's PID loop as the process variable.
 
-This cycle runs for all relevant joints within the 1ms control interrupt.
+When no AS5600 is fitted, the wrist joints run pure open-loop from the homed step counter and skip this code path entirely.
 
 ### 2d. Homing Sequence
 
@@ -131,7 +134,7 @@ firmware/
 │   ├── main.cpp              # Initialization, main loop
 │   ├── stepper.cpp/.h        # Timer-based pulse generation per joint
 │   ├── pid.cpp/.h            # Generic PID controller struct
-│   ├── encoder.cpp/.h        # AS5600 reads via TCA9548A
+│   ├── encoder.cpp/.h        # Optional AS5600 reads (J5/J6 only) - mux used only if both fitted
 │   ├── homing.cpp/.h         # Homing state machine
 │   ├── comms.cpp/.h          # UART packet parser and builder
 │   └── safety.cpp/.h         # Fault detection and e-stop logic

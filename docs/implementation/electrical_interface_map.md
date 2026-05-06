@@ -16,26 +16,30 @@ This document defines the electrical interfaces for the robot arm at the contrac
 | ENABLE signals | Out | **3.3V MCU** → **5V** | STM32 GPIO | 74HC245 → drivers | Same level shifting as STEP |
 | ALARM / FAULT | In | Driver output | Drivers | STM32 | Active-low fault input assumed |
 | Hall home inputs | In | 5V or open-collector | A3144 sensors | STM32 | One per joint |
-| I2C SCL/SDA | Bi-dir | 3.3V or 5V via pullups | STM32 | TCA9548A / AS5600 | Shared bus, muxed if needed |
+| I2C SCL/SDA | Bi-dir | 3.3V or 5V via pullups | STM32 | Optional AS5600 (J5/J6 only) | Bus only populated if a wrist AS5600 is fitted; TCA9548A only if both are fitted |
 | UART TX/RX | Bi-dir | 3.3V | Raspberry Pi / STM32 | STM32 / Raspberry Pi | High-level command channel |
 
 ## 2. Driver Logic Map
 
 ### 2a. J1-J4 Closed-Loop Driver Control
 
+The CL57T / CL42T kits ship with a factory motor encoder that the **driver itself** reads. The STM32 only sees STEP/DIR/ENABLE/ALARM — there is **no external AS5600, no I2C bus, and no magnet** for these joints.
+
 | Joint | Motor / Driver | Control Signals | Feedback Signals | Notes |
 |:---|:---|:---|:---|:---|
-| J1 | NEMA 23 / CL57T | STEP, DIR, ENABLE | ALARM | Closed-loop correction lives in the driver |
-| J2 | NEMA 23 / CL57T | STEP, DIR, ENABLE | ALARM | Same interface as J1 |
-| J3 | NEMA 17 / CL42T | STEP, DIR, ENABLE | ALARM | Same electrical contract, lower current |
-| J4 | NEMA 17 / CL42T | STEP, DIR, ENABLE | ALARM | Same electrical contract, lower current |
+| J1 | NEMA 23 / CL57T | STEP, DIR, ENABLE | ALARM + Hall home (A3144) | Closed-loop correction lives in the driver |
+| J2 | NEMA 23 / CL57T | STEP, DIR, ENABLE | ALARM + Hall home (A3144) | Same interface as J1 |
+| J3 | NEMA 17 / CL42T | STEP, DIR, ENABLE | ALARM + Hall home (A3144) | Same electrical contract, lower current |
+| J4 | NEMA 17 / CL42T | STEP, DIR, ENABLE | ALARM + Hall home (A3144) | Same electrical contract, lower current |
 
 ### 2b. J5-J6 Open-Loop Driver Control
 
 | Joint | Motor / Driver | Control Signals | Feedback Signals | Notes |
 |:---|:---|:---|:---|:---|
-| J5 | NEMA 14 / TMC2209 | STEP, DIR, ENABLE | Optional AS5600 + Hall home | Quiet wrist joint, open-loop by default |
-| J6 | NEMA 14 / TMC2209 | STEP, DIR, ENABLE | Optional AS5600 + Hall home | Quiet tool-roll joint, open-loop by default |
+| J5 | NEMA 14 / TMC2209 | STEP, DIR, ENABLE | Hall home (A3144); AS5600 optional Phase 2 only | Quiet wrist joint, open-loop by default |
+| J6 | NEMA 14 / TMC2209 | STEP, DIR, ENABLE | Hall home (A3144); AS5600 optional Phase 2 only | Quiet tool-roll joint, open-loop by default |
+
+> All six joints carry an A3144 Hall sensor for boot-time homing. Only J5 / J6 are even *candidates* for an AS5600, and only if open-loop drift turns out to matter in practice.
 
 ## 3. Connector Contract
 
@@ -54,14 +58,16 @@ A common 6-pin control header can be used for each motor channel:
 
 ### 3b. Sensor Header
 
-| Pin | Signal | Function |
-|:---:|:---|:---|
-| 1 | VCC | Sensor supply |
-| 2 | GND | Sensor ground |
-| 3 | HOME | A3144 Hall output |
-| 4 | SCL | I2C clock for AS5600 / mux |
-| 5 | SDA | I2C data for AS5600 / mux |
-| 6 | SHIELD | Cable shield / drain |
+A common 6-pin sensor header is wired the same on every joint, even when the I2C lines are unused, so a single cable BOM and connector applies arm-wide. **SCL / SDA are populated only on J5 and J6, and only if an AS5600 is actually fitted.** On J1–J4 those two pins are present in the header but left disconnected at both ends.
+
+| Pin | Signal | Function | Populated on |
+|:---:|:---|:---|:---|
+| 1 | VCC | Sensor supply (P5V_LOGIC) | J1–J6 |
+| 2 | GND | Sensor ground | J1–J6 |
+| 3 | HOME | A3144 Hall output (boot homing) | J1–J6 |
+| 4 | SCL | I2C clock — AS5600 only | J5/J6 if AS5600 fitted |
+| 5 | SDA | I2C data — AS5600 only | J5/J6 if AS5600 fitted |
+| 6 | SHIELD | Cable shield / drain | J1–J6 |
 
 ## 4. Signal Rules
 
@@ -83,8 +89,21 @@ These choices unblock KiCad net naming and firmware pin mapping reviews:
 | MCU / dev board for diagrams | **STM32 Nucleo-F401RE** (`STM32F401RET6`) | Schematics and [firmware/pinout.md](../../firmware/pinout.md) match `platformio.ini` (`nucleo_f401re`). **Power**: board expects **5 V** (e.g. ST-Link **Micro-B USB** from PC or bench supply); the MCU runs at **3.3 V** internally — see [electrical_design.md](electrical_design.md) §1b note. |
 | PC programming cable | **USB A – Micro-B** | **ST-Link / VCP** on the Nucleo (not the Pi’s USB-C power cord). Blue molded cables are common; rating/color does not change USB 2.0 behavior. |
 
-## 6. Open Items
+## 6. End-Effector / Gripper
+
+The MG996R servo **is** the gripper actuator. Mechanically it lives **inside the gripper assembly** that bolts to the **J6 tool flange**, not in the arm wrist itself. Treat the EOAT as its own electrical sub-system that crosses the wrist on a single 4-pin tool-flange connector:
+
+| Pin | Signal | Voltage | Notes |
+|:---:|:---|:---|:---|
+| 1 | `5V_SERVO` | 5 V | Dedicated rail from the third LM2596 buck (`24V_MOTOR` to 5 V). **Not** shared with `5V_LOGIC` or `5V_PI`. |
+| 2 | `GND_M` | — | Star-grounded at the PSU return alongside the motor rail. |
+| 3 | `GRIPPER_PWM` | 3.3 V | One STM32 timer pin (e.g. `PA8 / TIM1_CH1`) feeding a ~50 Hz hobby-servo frame. No level shifter required. |
+| 4 | `GRIPPER_FSR` | 0–3.3 V | Optional Force Sensitive Resistor on the gripper fingertip → STM32 ADC pin via a 10k divider. |
+
+See [`hardware/wireviz/60_end_effector.yml`](../../hardware/wireviz/60_end_effector.yml) for the harness diagram.
+
+## 7. Open Items
 
 - Final STM32 GPIO numbers (CubeMX / Nucleo pinmux vs firmware `pinout.md`).
 - Exact connector family for the control box and joint harnesses.
-- Whether J5 and J6 get AS5600 feedback immediately or stay open-loop for phase 1.
+- Whether J5 and J6 get AS5600 feedback at all (default plan: skip until measured drift forces the issue).
