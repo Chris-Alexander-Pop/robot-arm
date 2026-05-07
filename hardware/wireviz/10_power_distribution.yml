@@ -1,0 +1,185 @@
+# 10_power_distribution
+# AC mains -> IEC C14 + fuse -> latching E-stop -> Mean Well LRS-350-24
+#   -> 24V_MOTOR bus -> 6 motor drivers + 3 LM2596 buck converters
+# Sources: docs/implementation/electrical_design.md sec 1, electrical_interface_map.md sec 1.
+
+connectors:
+  WALL:
+    type: AC mains
+    subtype: wall outlet
+    pinlabels: [L, N, PE]
+    notes: Country-specific plug; not part of the harness BOM.
+
+  IEC:
+    type: IEC C14 inlet
+    subtype: panel mount + integrated fuse holder
+    pinlabels: [L, N, PE]
+    notes: Fuse sized to PSU rated input current.
+
+  ESTOP:
+    type: Latching E-stop
+    subtype: 1x NC contact in series with mains L
+    pinlabels: [L_in, L_out]
+    notes: Latching mushroom head. Cuts AC before the PSU - zero software dependency.
+
+  PSU:
+    type: Mean Well LRS-350-24
+    subtype: 350 W / 24 V / 14.6 A
+    pinlabels: [L, N, PE, +V1, +V2, -V1, -V2]
+    notes: AC in on L/N/PE. 24V_MOTOR bus on +V/-V terminal pairs.
+
+  TB_24V:
+    type: Power distribution block
+    subtype: DIN-rail terminal block (24V_MOTOR bus)
+    pinlabels: [P24V_in, GND_in, P24V_drv, GND_drv, P24V_buck, GND_buck]
+
+  BUCK_LOGIC:
+    type: LM2596 buck #1
+    subtype: 24V to 5V_LOGIC (~1 A)
+    pinlabels: [VIN+, VIN-, VOUT+, VOUT-]
+    notes: Powers STM32, 74HC245, sensors. May also power Nucleo via E5V pin.
+
+  BUCK_PI:
+    type: LM2596 buck #2
+    subtype: 24V to 5V_PI (min 3 A)
+    pinlabels: [VIN+, VIN-, VOUT+, VOUT-]
+    notes: Dedicated to Raspberry Pi 4. Isolated from logic rail noise.
+
+  BUCK_SERVO:
+    type: LM2596 buck #3
+    subtype: 24V to 5V_SERVO (MG996R only)
+    pinlabels: [VIN+, VIN-, VOUT+, VOUT-]
+    notes: Star-grounded at PSU return. Does NOT share with 5V_LOGIC or 5V_PI.
+
+  LOAD_DRIVERS:
+    type: Motor driver bus
+    subtype: 6 drivers in parallel (CL57T x2, CL42T x2, TMC2209 x2)
+    pinlabels: [P24V, GND_M]
+
+  LOAD_LOGIC:
+    type: 5V_LOGIC consumers
+    subtype: STM32 / 74HC245 / sensor cluster
+    pinlabels: [P5V_LOGIC, GND_L]
+
+  LOAD_PI:
+    type: Raspberry Pi 4
+    subtype: USB-C or GPIO pin 2/4 + 6 (5V/GND)
+    pinlabels: [P5V_PI, GND_L]
+
+  LOAD_SERVO:
+    type: MG996R servo
+    subtype: gripper actuator
+    pinlabels: [P5V_SERVO, GND_M]
+
+cables:
+  W_MAINS_IN:
+    gauge: 14 AWG
+    colors: [BN, BU, GNYE]
+    length: 0.5
+    wirecount: 3
+
+  W_ESTOP_LOOP:
+    gauge: 14 AWG
+    colors: [BN, BU, GNYE]
+    length: 0.4
+    wirecount: 3
+    notes: L is broken out through the E-stop; N and PE pass straight through.
+
+  W_PSU_OUT:
+    gauge: 16 AWG
+    colors: [RD, RD, BK, BK]
+    length: 0.4
+    wirecount: 4
+    notes: Two +V and two -V terminals doubled to share PSU output current.
+
+  W_PWR_DRV_BUS:
+    category: bundle
+    gauge: 18 AWG
+    colors: [RD, BK]
+    length: 0.5
+    wirelabels: [P24V, GND_M]
+    notes: From terminal block to driver power inputs (chained or daisy in cabinet).
+
+  W_PWR_TO_BUCKS:
+    category: bundle
+    gauge: 22 AWG
+    colors: [RD, BK]
+    length: 0.3
+    wirelabels: [P24V, GND_M]
+
+  W_PWR_LOGIC:
+    category: bundle
+    gauge: 22 AWG
+    colors: [RD, BK]
+    length: 0.4
+    wirelabels: [P5V_LOGIC, GND_L]
+
+  W_PWR_PI:
+    category: bundle
+    gauge: 18 AWG
+    colors: [RD, BK]
+    length: 0.4
+    wirelabels: [P5V_PI, GND_L]
+    notes: Sized for at least 3 A peak Pi load.
+
+  W_PWR_SERVO:
+    category: bundle
+    gauge: 22 AWG
+    colors: [RD, BK]
+    length: 0.4
+    wirelabels: [P5V_SERVO, GND_M]
+
+connections:
+  -
+    - WALL: [L, N, PE]
+    - W_MAINS_IN: [1-3]
+    - IEC: [L, N, PE]
+
+  -
+    - IEC: [L]
+    - W_ESTOP_LOOP: [1]
+    - ESTOP: [L_in]
+  -
+    - ESTOP: [L_out]
+    - W_ESTOP_LOOP: [1]
+    - PSU: [L]
+  -
+    - IEC: [N, PE]
+    - W_ESTOP_LOOP: [2, 3]
+    - PSU: [N, PE]
+
+  -
+    - PSU: [+V1, +V2, -V1, -V2]
+    - W_PSU_OUT: [1-4]
+    - TB_24V: [P24V_in, P24V_in, GND_in, GND_in]
+
+  -
+    - TB_24V: [P24V_drv, GND_drv]
+    - W_PWR_DRV_BUS: [1, 2]
+    - LOAD_DRIVERS: [P24V, GND_M]
+
+  -
+    - TB_24V: [P24V_buck, GND_buck]
+    - W_PWR_TO_BUCKS: [1, 2]
+    - BUCK_LOGIC: [VIN+, VIN-]
+  -
+    - TB_24V: [P24V_buck, GND_buck]
+    - W_PWR_TO_BUCKS: [1, 2]
+    - BUCK_PI: [VIN+, VIN-]
+  -
+    - TB_24V: [P24V_buck, GND_buck]
+    - W_PWR_TO_BUCKS: [1, 2]
+    - BUCK_SERVO: [VIN+, VIN-]
+
+  -
+    - BUCK_LOGIC: [VOUT+, VOUT-]
+    - W_PWR_LOGIC: [1, 2]
+    - LOAD_LOGIC: [P5V_LOGIC, GND_L]
+  -
+    - BUCK_PI: [VOUT+, VOUT-]
+    - W_PWR_PI: [1, 2]
+    - LOAD_PI: [P5V_PI, GND_L]
+  -
+    - BUCK_SERVO: [VOUT+, VOUT-]
+    - W_PWR_SERVO: [1, 2]
+    - LOAD_SERVO: [P5V_SERVO, GND_M]

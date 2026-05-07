@@ -60,11 +60,12 @@ Include one repeated channel block per joint:
 ### 2e. Sensor Sheet
 
 Include:
-- TCA9548A I2C multiplexer
-- AS5600 encoder headers
-- A3144 Hall sensor headers
-- Pullups and filter components
+- A3144 Hall home sensor headers — **one per joint, J1–J6** (always populated; used for boot-time homing)
+- I2C pullups (4.7k to `5V_LOGIC`) on the controller side
 - Optional shield termination
+- AS5600 + TCA9548A footprints **only as Phase 2 / depopulated parts**, intended for J5 and J6 only. The closed-loop kits on J1–J4 do their own encoder feedback inside the driver, so do not add AS5600 headers for those joints.
+
+> Default build: no AS5600s, no mux. Only stuff the I2C path if the wrist actually needs absolute feedback.
 
 ## 3. Net Naming Convention
 

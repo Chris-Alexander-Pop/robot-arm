@@ -1,0 +1,85 @@
+# 30_joint_J1_closed_loop
+# CL57T split into logical connector blocks (same physical driver) so WireViz
+# does not draw one 20-pin tower.
+
+connectors:
+  CTRL_HEADER:
+    type: 6-pin control header
+    subtype: from controller protoboard
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    notes: Same harness as 20_control_signals.
+
+  P24V_BUS:
+    type: 24V_MOTOR terminal block
+    pinlabels: [P24V, GND_M]
+
+  DRV_LOGIC:
+    type: CL57T control inputs
+    subtype: same physical StepperOnline CL57T — logic section
+    pinlabels: [PUL_p, PUL_n, DIR_p, DIR_n, ENA_p, ENA_n, ALM_p, ALM_n]
+    notes: Common-anode — jumper PUL_p DIR_p ENA_p to P5V_REF at driver; sink on _n pins.
+
+  DRV_PWR:
+    type: CL57T motor supply
+    subtype: same physical CL57T — power section
+    pinlabels: [VDC_p, VDC_n]
+
+  DRV_MOTOR:
+    type: CL57T motor phases
+    subtype: same physical CL57T — output section
+    pinlabels: [A_p, A_n, B_p, B_n]
+
+  DRV_ENCODER:
+    type: CL57T factory encoder header
+    subtype: same physical CL57T — encoder to motor pigtail
+    pinlabels: [ENC_VCC, ENC_GND, ENC_A_p, ENC_A_n, ENC_B_p, ENC_B_n]
+
+  MOTOR:
+    type: NEMA 23 stepper
+    subtype: 2.0 Nm plus factory encoder pigtail
+    pinlabels: [A_p, A_n, B_p, B_n, ENC_VCC, ENC_GND, ENC_A_p, ENC_A_n, ENC_B_p, ENC_B_n]
+
+cables:
+  W_PWR_J1:
+    category: bundle
+    wirelabels: [P24V, GND_M]
+    gauge: 18 AWG
+    colors: [RD, BK]
+    length: 0.4
+
+  W_CTRL_J1:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.0
+
+  W_MOTOR_J1:
+    category: bundle
+    wirelabels: [A_p, A_n, B_p, B_n]
+    gauge: 18 AWG
+    colors: [RD, BU, GN, BK]
+    length: 1.5
+
+  W_ENC_J1:
+    category: bundle
+    wirelabels: [VCC, GND, A_p, A_n, B_p, B_n]
+    gauge: 26 AWG
+    colors: [RD, BK, WH, GY, GN, YE]
+    shield: true
+    length: 1.5
+
+connections:
+  - [P24V_BUS: [P24V, GND_M], W_PWR_J1: [1, 2], DRV_PWR: [VDC_p, VDC_n]]
+
+  - [CTRL_HEADER: [P5V_REF], W_CTRL_J1: [6], DRV_LOGIC: [PUL_p]]
+  - [CTRL_HEADER: [STEP], W_CTRL_J1: [1], DRV_LOGIC: [PUL_n]]
+  - [CTRL_HEADER: [DIR], W_CTRL_J1: [2], DRV_LOGIC: [DIR_n]]
+  - [CTRL_HEADER: [ENABLE], W_CTRL_J1: [3], DRV_LOGIC: [ENA_n]]
+  - [CTRL_HEADER: [ALARM], W_CTRL_J1: [4], DRV_LOGIC: [ALM_n]]
+  - [CTRL_HEADER: [GND_L], W_CTRL_J1: [5], DRV_LOGIC: [ALM_p]]
+
+  - [DRV_MOTOR: [A_p, A_n, B_p, B_n], W_MOTOR_J1: [1-4], MOTOR: [A_p, A_n, B_p, B_n]]
+
+  - [DRV_ENCODER: [ENC_VCC, ENC_GND, ENC_A_p, ENC_A_n, ENC_B_p, ENC_B_n], W_ENC_J1: [1-6], MOTOR: [ENC_VCC, ENC_GND, ENC_A_p, ENC_A_n, ENC_B_p, ENC_B_n]]
