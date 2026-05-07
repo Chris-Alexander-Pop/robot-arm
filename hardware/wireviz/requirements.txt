@@ -1,0 +1,3 @@
+# Harness / wiring diagrams (https://github.com/wireviz/WireViz).
+# Requires Graphviz on PATH (`dot`). Arch: pacman -S graphviz; Debian/Ubuntu: apt install graphviz
+wireviz>=0.4.1,<0.5
