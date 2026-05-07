@@ -1,0 +1,88 @@
+# 50_homing — six A3144 Hall HOME sensors (one per joint, boot-time reference).
+# Split from the optional wrist I2C path for clearer WireViz layout.
+# See also 55_wrist_encoders.yml (Phase 2 AS5600 / TCA9548A).
+
+connectors:
+  MCU:
+    type: STM32 Nucleo-F401RE
+    subtype: six GPIO inputs for HOME_J1 through HOME_J6
+    pinlabels:
+      - GND_L
+      - P5V_LOGIC
+      - HOME_J1
+      - HOME_J2
+      - HOME_J3
+      - HOME_J4
+      - HOME_J5
+      - HOME_J6
+
+  HALL_J1:
+    type: Allegro A3144 Hall (J1 home)
+    pinlabels: [VCC, GND, OUT]
+  HALL_J2:
+    type: Allegro A3144 Hall (J2 home)
+    pinlabels: [VCC, GND, OUT]
+  HALL_J3:
+    type: Allegro A3144 Hall (J3 home)
+    pinlabels: [VCC, GND, OUT]
+  HALL_J4:
+    type: Allegro A3144 Hall (J4 home)
+    pinlabels: [VCC, GND, OUT]
+  HALL_J5:
+    type: Allegro A3144 Hall (J5 home)
+    pinlabels: [VCC, GND, OUT]
+  HALL_J6:
+    type: Allegro A3144 Hall (J6 home)
+    pinlabels: [VCC, GND, OUT]
+
+cables:
+  W_HOME_J1:
+    category: bundle
+    wirelabels: [VCC, GND, OUT]
+    gauge: 24 AWG
+    colors: [RD, BK, WH]
+    shield: true
+    length: 1.0
+  W_HOME_J2:
+    category: bundle
+    wirelabels: [VCC, GND, OUT]
+    gauge: 24 AWG
+    colors: [RD, BK, WH]
+    shield: true
+    length: 1.0
+  W_HOME_J3:
+    category: bundle
+    wirelabels: [VCC, GND, OUT]
+    gauge: 24 AWG
+    colors: [RD, BK, WH]
+    shield: true
+    length: 1.0
+  W_HOME_J4:
+    category: bundle
+    wirelabels: [VCC, GND, OUT]
+    gauge: 24 AWG
+    colors: [RD, BK, WH]
+    shield: true
+    length: 1.0
+  W_HOME_J5:
+    category: bundle
+    wirelabels: [VCC, GND, OUT]
+    gauge: 24 AWG
+    colors: [RD, BK, WH]
+    shield: true
+    length: 1.0
+  W_HOME_J6:
+    category: bundle
+    wirelabels: [VCC, GND, OUT]
+    gauge: 24 AWG
+    colors: [RD, BK, WH]
+    shield: true
+    length: 1.0
+
+connections:
+  - [MCU: [P5V_LOGIC, GND_L, HOME_J1], W_HOME_J1: [1-3], HALL_J1: [VCC, GND, OUT]]
+  - [MCU: [P5V_LOGIC, GND_L, HOME_J2], W_HOME_J2: [1-3], HALL_J2: [VCC, GND, OUT]]
+  - [MCU: [P5V_LOGIC, GND_L, HOME_J3], W_HOME_J3: [1-3], HALL_J3: [VCC, GND, OUT]]
+  - [MCU: [P5V_LOGIC, GND_L, HOME_J4], W_HOME_J4: [1-3], HALL_J4: [VCC, GND, OUT]]
+  - [MCU: [P5V_LOGIC, GND_L, HOME_J5], W_HOME_J5: [1-3], HALL_J5: [VCC, GND, OUT]]
+  - [MCU: [P5V_LOGIC, GND_L, HOME_J6], W_HOME_J6: [1-3], HALL_J6: [VCC, GND, OUT]]
