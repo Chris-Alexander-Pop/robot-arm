@@ -1,0 +1,96 @@
+# 60_end_effector
+#
+# End-effector / EOAT (End Of Arm Tooling). The MG996R servo IS the gripper
+# actuator - it lives inside the gripper body that bolts to the J6 tool flange.
+# It is NOT mounted in the arm itself.
+#
+# Power: dedicated 5V_SERVO rail from a third LM2596 / UBEC fed off 24V_MOTOR.
+#        See 10_power_distribution.yml. Do NOT share the 5V_LOGIC or 5V_PI rails.
+#
+# Signal: a single PWM line from a STM32 timer pin. The MCU side does not need
+#         a level shifter because the MG996R's signal pin is high-impedance and
+#         triggers cleanly on 3.3 V CMOS.
+#
+# Optional: a Force Sensitive Resistor (FSR) on the gripper fingertips for
+#           grip-force feedback (mechanical_design.md sec 5).
+#
+# Sources:
+#   docs/implementation/mechanical_design.md sec 5
+#   docs/implementation/electrical_interface_map.md sec 5
+
+connectors:
+  MCU:
+    type: STM32 Nucleo-F401RE
+    subtype: 1x PWM-capable timer pin + optional ADC for FSR
+    pinlabels:
+      - PA8        # TIM1_CH1 (gripper PWM, ~50 Hz hobby servo frame)
+      - GND_L
+      - PA0        # ADC1_IN0 (optional FSR analog input)
+
+  BUCK_SERVO:
+    type: LM2596 buck #3
+    subtype: 24V to 5V_SERVO (gripper only)
+    pinlabels: [VOUT_p, VOUT_n]
+
+  TOOL_FLANGE:
+    type: Tool flange harness pass-through
+    subtype: 4-pin connector at the J6 wrist (panel mount)
+    pinlabels: [P5V_SERVO, GND_M, PWM, FSR]
+    notes: All EOAT signals cross the wrist here. Use a locking connector so a tool change does not yank the arm wiring.
+
+  GRIPPER:
+    type: MG996R metal-gear servo
+    subtype: integrated into the gripper body (not the arm)
+    pinlabels: [P5V_SERVO, GND_M, PWM]
+    notes: |
+      The MG996R is THE gripper actuator. Mount it inside / on the
+      3D-printed gripper assembly that bolts to the J6 tool flange,
+      NOT in the arm wrist. Standard 3-wire hobby servo pinout.
+
+  FSR:
+    type: Force Sensitive Resistor (OPTIONAL)
+    subtype: glued to the gripper fingertip pad
+    pinlabels: [SIG, GND_L]
+    notes: Voltage divider with a 10k resistor on the controller board feeds an ADC pin.
+
+cables:
+  W_SERVO_PWR:
+    category: bundle
+    wirelabels: [P5V_SERVO, GND_M]
+    gauge: 22 AWG
+    colors: [RD, BK]
+    length: 0.4
+    notes: From the dedicated buck output to the tool flange P5V_SERVO/GND_M pins.
+
+  W_SERVO_PWM:
+    category: bundle
+    wirelabels: [PWM, GND_L]
+    gauge: 24 AWG
+    colors: [OG, BK]
+    shield: true
+    length: 1.5
+    notes: STM32 PWM signal routed through the arm to the tool flange. Keep separate from motor phase cables.
+
+  W_FSR:
+    category: bundle
+    wirelabels: [SIG, GND_L]
+    gauge: 26 AWG
+    colors: [WH, BK]
+    shield: true
+    length: 1.5
+
+  W_TOOL_PIGTAIL:
+    category: bundle
+    wirelabels: [P5V_SERVO, GND_M, PWM, FSR]
+    gauge: 24 AWG
+    colors: [RD, BK, OG, WH]
+    length: 0.2
+    notes: Short pigtail inside the gripper from the tool-flange connector to the MG996R and FSR.
+
+connections:
+  - [BUCK_SERVO: [VOUT_p, VOUT_n], W_SERVO_PWR: [1, 2], TOOL_FLANGE: [P5V_SERVO, GND_M]]
+  - [MCU: [PA8, GND_L], W_SERVO_PWM: [1, 2], TOOL_FLANGE: [PWM, GND_M]]
+  - [MCU: [PA0, GND_L], W_FSR: [1, 2], TOOL_FLANGE: [FSR, GND_M]]
+
+  - [TOOL_FLANGE: [P5V_SERVO, GND_M, PWM], W_TOOL_PIGTAIL: [1-3], GRIPPER: [P5V_SERVO, GND_M, PWM]]
+  - [TOOL_FLANGE: [FSR, GND_M], W_TOOL_PIGTAIL: [4, 2], FSR: [SIG, GND_L]]

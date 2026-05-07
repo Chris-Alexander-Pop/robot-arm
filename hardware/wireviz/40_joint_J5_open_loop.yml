@@ -1,0 +1,82 @@
+# 40_joint_J5_open_loop — TMC2209 split into logical blocks (same carrier).
+
+connectors:
+  CTRL_HEADER:
+    type: 6-pin control header
+    subtype: from controller protoboard
+    pinlabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+
+  P24V_BUS:
+    type: 24V_MOTOR terminal block
+    pinlabels: [P24V, GND_M]
+
+  DRV_PWR:
+    type: TMC2209 VM supply
+    subtype: same carrier — motor rail
+    pinlabels: [VM, GND_M]
+
+  DRV_LOGIC:
+    type: TMC2209 logic and STEP/DIR
+    subtype: same carrier — digital section (MS1/MS2/VREF on carrier silkscreen)
+    pinlabels: [VIO, GND_L, STEP, DIR, EN, DIAG]
+
+  DRV_MOTOR:
+    type: TMC2209 coil outputs
+    subtype: same carrier — motor section
+    pinlabels: [M1A, M1B, M2A, M2B]
+
+  MOTOR:
+    type: NEMA 14 stepper
+    subtype: pancake wrist motor
+    pinlabels: [A_p, A_n, B_p, B_n]
+
+  AS5600:
+    type: AS5600 (OPTIONAL Phase 2)
+    subtype: most builds omit
+    pinlabels: [VCC, GND, SCL, SDA, DIR, OUT]
+    notes: If fitted, see 55_wrist_encoders.yml for I2C and optional mux.
+
+cables:
+  W_PWR_J5:
+    category: bundle
+    wirelabels: [P24V, GND_M]
+    gauge: 22 AWG
+    colors: [RD, BK]
+    length: 0.4
+
+  W_CTRL_J5:
+    category: bundle
+    wirelabels: [STEP, DIR, ENABLE, ALARM, GND_L, P5V_REF]
+    gauge: 22 AWG
+    colors: [WH, YE, GN, OG, BK, RD]
+    shield: true
+    length: 1.2
+
+  W_MOTOR_J5:
+    category: bundle
+    wirelabels: [A_p, A_n, B_p, B_n]
+    gauge: 22 AWG
+    colors: [RD, BU, GN, BK]
+    length: 1.5
+
+  W_ENC_J5:
+    category: bundle
+    wirelabels: [VCC, GND, SCL, SDA]
+    gauge: 26 AWG
+    colors: [RD, BK, YE, GN]
+    shield: true
+    length: 1.5
+
+connections:
+  - [P24V_BUS: [P24V, GND_M], W_PWR_J5: [1, 2], DRV_PWR: [VM, GND_M]]
+
+  - [CTRL_HEADER: [STEP], W_CTRL_J5: [1], DRV_LOGIC: [STEP]]
+  - [CTRL_HEADER: [DIR], W_CTRL_J5: [2], DRV_LOGIC: [DIR]]
+  - [CTRL_HEADER: [ENABLE], W_CTRL_J5: [3], DRV_LOGIC: [EN]]
+  - [CTRL_HEADER: [ALARM], W_CTRL_J5: [4], DRV_LOGIC: [DIAG]]
+  - [CTRL_HEADER: [GND_L], W_CTRL_J5: [5], DRV_LOGIC: [GND_L]]
+  - [CTRL_HEADER: [P5V_REF], W_CTRL_J5: [6], DRV_LOGIC: [VIO]]
+
+  - [DRV_MOTOR: [M1A, M1B, M2A, M2B], W_MOTOR_J5: [1-4], MOTOR: [A_p, A_n, B_p, B_n]]
+
+  - [CTRL_HEADER: [P5V_REF, GND_L], W_ENC_J5: [1, 2], AS5600: [VCC, GND]]
