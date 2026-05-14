@@ -10,3 +10,4 @@ Example: - $80.37 for NEMA 2 Motor + Driver kit
 - $31.96 for 6x2 mm round magnets (pack of 60) + 6x40 mm steel dowels (pack of 20)
 - $31.58 for 18AWG Wire
 - $146.88 for NEMA 23 motor + driver kit and mounting bracket
+- $44.94 for M5x50mm (50 pieces), M5 x 25mm (50 pieces) and M5 x 20mm (50 pieces) bolts
