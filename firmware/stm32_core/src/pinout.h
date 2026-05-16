@@ -17,6 +17,14 @@
 // Using STM32 port/pin names as supported by the STM32duino Arduino framework.
 // One GPIO pair per joint — STEP triggers a motor step, DIR sets rotation direction.
 constexpr int kJ1StepPin = PB0;   constexpr int kJ1DirPin = PB1;
+
+// Bench bring-up: CL57T via 74HCT541 on Nucleo Arduino header A0/A1.
+// Used by hwtest_cl57t_bench until the J1 harness is wired to PB0/PB1.
+constexpr int kBenchStepPin = PA0;
+constexpr int kBenchDirPin  = PA1;
+
+// Nucleo-F401RE blue user button (B1), active LOW when pressed.
+constexpr int kUserButtonPin = PC13;
 constexpr int kJ2StepPin = PB10;  constexpr int kJ2DirPin = PB11;
 constexpr int kJ3StepPin = PB12;  constexpr int kJ3DirPin = PB13;
 constexpr int kJ4StepPin = PB14;  constexpr int kJ4DirPin = PB15;
