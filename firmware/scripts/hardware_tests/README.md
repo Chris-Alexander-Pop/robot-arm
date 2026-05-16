@@ -18,6 +18,29 @@ host-side orchestration required unless otherwise noted.
 
 ## Tests
 
+### `run_cl57t_bench.sh` — CL57T bench bring-up (PA0 / PA1, very low speed)
+
+**What it does:**
+Slow, safe first-motion sequence for the bench wiring (STM32 → 74HCT541 → CL57T):
+
+1. Serial banner, then wait for **B1** (blue USER button on Nucleo)
+2. Forward: 10, 25, then 40 steps/s — 2 s each
+3. Reverse: same speeds
+4. Stops and prints completion message
+
+**Required hardware:**
+- PA0 → 541 A0 → Y0 → CL57T PUL+; PA1 → 541 A1 → Y1 → CL57T DIR+
+- PUL−, DIR−, COM and 541 GND common; 541 /OE1, /OE2 → GND; CL57T **S3 = 5 V**
+- Motor PSU on P4; encoder on P2; **SW6 OFF** (closed loop)
+
+**Run:**
+```sh
+cd firmware/scripts/hardware_tests
+./run_cl57t_bench.sh
+```
+
+---
+
 ### `run_stepper_single.sh` — Single-axis stepper (NEMA 23 + CL57T)
 
 **What it does:**
@@ -131,6 +154,10 @@ You can also flash any hardware test manually by setting
 
 ```sh
 cd firmware/stm32_core
+
+# CL57T bench (PA0/PA1, low speed)
+PLATFORMIO_BUILD_FLAGS="-DHWTEST_CL57T_BENCH" \
+  pio run -e nucleo_f401re_hwtest -t upload
 
 # Single-axis stepper test
 PLATFORMIO_BUILD_FLAGS="-DHWTEST_STEPPER_SINGLE" \
