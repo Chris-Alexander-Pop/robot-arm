@@ -2,6 +2,8 @@
 
 This document outlines the low-level real-time control code for the STM32 microcontroller.
 
+**Learning path**: Tier 1 exercise stubs (`JointController::Step`, `StepperDriver` under `stm32_core/lib/`) and the fuller product backlog described below intentionally overlap—the boxes here are broader themes (architecture, tooling, ROS), while onboarding steps live in **[`firmware/CONTRIBUTING.md`](CONTRIBUTING.md)** with concrete filenames.
+
 ## DEVELOPMENT
 *Testing, driver validation, and core logic - some items require prototype hardware (one of each motor/driver) before the final build; until then, focus on protocol contracts, interface definitions, and simulation-friendly logic.*
 

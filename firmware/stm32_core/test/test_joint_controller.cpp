@@ -1,4 +1,5 @@
 #include "control/joint_controller.h"
+#include "core/joint_limits.h"
 #include "drivers/stepper_driver.h"
 #include "test_harness.h"
 
@@ -69,4 +70,31 @@ void run_joint_controller_tests(TestContext& test) {
   }
 
   controller.Step(0.0F);
+
+  // Motion-limit clamping (anti cable-wrap backstop vs runaway winding).
+  {
+    robot_arm::JointMotionLimits narrow{};
+    robot_arm::DefaultJointMotionLimits(&narrow);
+    narrow.min_deg[0] = -40.0F;
+    narrow.max_deg[0]  = -20.0F;
+
+    robot_arm::JointController limited_controller(stepper_driver);
+    limited_controller.SetMotionLimits(narrow);
+
+    robot_arm::JointCommand command{};
+    command.target_position_deg[0] = 500.0F;
+    limited_controller.SetCommand(command);
+    test.CheckFloatEq(-20.0F, limited_controller.command().target_position_deg[0],
+                      "motion limits clamp high-setpoint joints to configured max_deg");
+
+    command.target_position_deg[0] = -999.0F;
+    limited_controller.SetCommand(command);
+    test.CheckFloatEq(-40.0F, limited_controller.command().target_position_deg[0],
+                      "motion limits clamp low-setpoint joints to configured min_deg");
+
+    command.target_position_deg[0] = -30.0F;
+    limited_controller.SetCommand(command);
+    test.CheckFloatEq(-30.0F, limited_controller.command().target_position_deg[0],
+                      "motion limits leave in-range targets unchanged");
+  }
 }

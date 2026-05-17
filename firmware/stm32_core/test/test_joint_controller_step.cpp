@@ -9,12 +9,9 @@
 //   PENDING: Tests marked with ReportPending() that document the behavior a
 //   contributor MUST verify once they fill in Step().  They do NOT increment
 //   the failure counter today, so the native test binary still exits 0.
-//   Two preconditions must be met before these assertions become hard:
-//     1. JointController::Step() is fully implemented (see joint_controller.cpp).
-//     2. Non-zero PID gains are configured for at least one joint.  The default
-//        PidController() has kp=ki=kd=0, which always produces zero output
-//        regardless of error.  Add a SetGains() method or initialise pid_[] with
-//        concrete gains in the JointController constructor.
+//   Preconditions before tightening PENDING assertions:
+//     1. Implement the TODO loop in joint_controller.cpp.
+//     2. Initialise pid_[] with non-zero gains where needed (default ctor is kp=ki=kd=0).
 //
 // Run the full suite:
 //   cd firmware/stm32_core
@@ -220,9 +217,8 @@ void run_joint_controller_step_tests(TestContext& test) {
   //
   // These soft checks document the contract but DO NOT fail the build.
   // Preconditions before converting to hard test.Check() calls:
-  //   1. Fill in the TODO loop body in joint_controller.cpp.
-  //   2. Add a SetGains() method or initialise pid_[] with kp>0 for joint 0.
-  //      Example: PidController pid_[kJointCount] = { PidController(1.0F,0,0), ... }
+  //   1. Fill in the TODO in joint_controller.cpp.
+  //   2. Give pid_[] non-zero gains where the test intends motion (kp>0 is enough for proportional smoke tests).
   // =========================================================================
 
   std::printf("--- PENDING Step() implementation tests ---\n");
