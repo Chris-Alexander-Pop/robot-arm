@@ -169,31 +169,31 @@ static void run_phase(const char* label, float speed_step_s, bool forward) {
   delay(300);
 }
 
-static void run_speed_sweep(bool forward) {
+// Each speed: forward then reverse so the shaft stays near the start for recording.
+static void run_speed_sweep_alternating() {
   for (size_t i = 0; i < kSpeedCount; ++i) {
-    char label[16];
-    snprintf(label, sizeof(label), "speed %s", kSpeedLabels[i]);
-    run_phase(label, kSpeeds[i], forward);
+    char label[20];
+    snprintf(label, sizeof(label), "speed %s fwd", kSpeedLabels[i]);
+    run_phase(label, kSpeeds[i], true);
+    snprintf(label, sizeof(label), "speed %s rev", kSpeedLabels[i]);
+    run_phase(label, kSpeeds[i], false);
   }
 }
 
 static void run_motion_sequence() {
   Serial.println();
-  Serial.println("GO — creep, then speed 1..12 forward and reverse.");
+  Serial.println("GO — creep, then speed 1..12 (fwd/rev pairs).");
   Serial.println("----------------------------------------");
 
-  Serial.println("[0] Creep (1 step/s, 5 s)");
+  Serial.println("[0] Creep forward (1 step/s, 5 s)");
   const unsigned long creep_n = run_visible_creep(1.0F, 5000UL, true, 200U);
   coast_to_stop();
   Serial.print("    creep pulses: ");
   Serial.println(creep_n);
   delay(400);
 
-  Serial.println("[1] Forward");
-  run_speed_sweep(true);
-
-  Serial.println("[2] Reverse");
-  run_speed_sweep(false);
+  Serial.println("[1] Speeds 1..12 (forward, then reverse each)");
+  run_speed_sweep_alternating();
 
   digitalWrite(kStepPin, LOW);
   digitalWrite(kDirPin, LOW);
