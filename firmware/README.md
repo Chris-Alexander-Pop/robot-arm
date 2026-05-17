@@ -6,6 +6,7 @@ Domain-level firmware area for low-level embedded control.
 - `stm32_core/`: STM32 PlatformIO project (control loop, drivers, protocol).
 
 ## Onboarding
+- Firmware contributor onboarding (Tier 1 vs Tier 2+ exercises): see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 - Clone this repository anywhere on disk — scripts resolve paths from their own location (`ROOT_DIR` / `SCRIPT_DIR` patterns) or from `${workspaceFolder}` in editor config. Nothing in the tracked tree should hardcode a machine-specific absolute path.
 - Do **not** commit `firmware/stm32_core/compile_commands.json` (see root `.gitignore`). It is generated locally by PlatformIO and embeds your toolchain paths.
 - Open `firmware/stm32_core/` as the PlatformIO project root.
