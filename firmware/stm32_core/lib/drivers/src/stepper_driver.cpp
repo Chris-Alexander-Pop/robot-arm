@@ -1,31 +1,20 @@
 #include "drivers/stepper_driver.h"
 
-// TODO(contributor): implement the ARDUINO hardware block below.
-// Steps:
-//   1. #include <AccelStepper.h> and #include "pinout.h" at the top of this file.
-//   2. Inside the #ifdef ARDUINO block, declare one AccelStepper per joint using
-//      AccelStepper::DRIVER mode and the kJn STEP/DIR pin pairs from pinout.h.
-//   3. Implement Init() to call setMaxSpeed() and setAcceleration() for each stepper.
-//   4. Implement SetJointVelocityDegS() to convert deg/s to step/s and call setSpeed().
-//      The conversion factor depends on your motor's steps/rev and microstepping setting.
-//   5. Implement Tick() to call runSpeed() for every stepper — this must be called
-//      every loop iteration for smooth motion.
-//
-// The non-ARDUINO stub below keeps the native unit tests passing unchanged.
-
 #ifdef ARDUINO
 
-// TODO: declare AccelStepper instances (one per joint) here, e.g.:
-//   static AccelStepper stepper_j1(AccelStepper::DRIVER, kJ1StepPin, kJ1DirPin);
-//   static AccelStepper stepper_j2(AccelStepper::DRIVER, kJ2StepPin, kJ2DirPin);
-//   ...
+// TODO(contributor): STEP/DIR for CL57T / CL42T (closed-loop servo is inside the motor driver pack).
+// AccelStepper is already wired in firmware/stm32_core/platformio.ini as a dependency; numbered checklist:
+//
+//   1. #include <Arduino.h>, <AccelStepper.h>, then "pinout.h" (MCU pins live under src/).
+//   2. Declare one AccelStepper(jointDriverMode, STEP, DIR) per joint — see kJnStepPin / kJnDirPin constants.
+//   3. Init(): setMaxSpeed / setAcceleration (derive max steps/s from (200 × microsteps) / 360 × desired °/s).
+//   4. SetJointVelocityDegS(): convert °/s → steps/s, call AccelStepper::setSpeed.
+//   5. Tick(): call runSpeed() on every joint every main loop iteration.
+//
 
 namespace robot_arm {
 
 bool StepperDriver::Init() {
-  // TODO: for each joint, configure max speed and acceleration, e.g.:
-  //   stepper_j1.setMaxSpeed(2000.0F);
-  //   stepper_j1.setAcceleration(500.0F);
   initialized_ = true;
   return true;
 }
@@ -35,17 +24,9 @@ void StepperDriver::SetJointVelocityDegS(int joint_index, float velocity_deg_s) 
     return;
   }
   joint_velocity_deg_s_[joint_index] = velocity_deg_s;
-  // TODO: convert velocity_deg_s to steps/s and call setSpeed() on the
-  // corresponding AccelStepper instance, e.g.:
-  //   constexpr float kStepsPerDeg = (200.0F * kMicrosteps) / 360.0F;
-  //   stepper_j1.setSpeed(velocity_deg_s * kStepsPerDeg);
 }
 
 void StepperDriver::Tick() {
-  // TODO: call runSpeed() for each stepper instance, e.g.:
-  //   stepper_j1.runSpeed();
-  //   stepper_j2.runSpeed();
-  //   ...
 }
 
 bool StepperDriver::initialized() const {
@@ -61,7 +42,7 @@ float StepperDriver::joint_velocity_deg_s(int joint_index) const {
 
 }  // namespace robot_arm
 
-#else  // non-ARDUINO stub — used by native unit tests
+#else  // native unit tests
 
 namespace robot_arm {
 

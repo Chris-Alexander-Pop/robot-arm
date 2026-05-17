@@ -156,9 +156,9 @@ void loop() {
   }
 #endif
 
-  // 2. Read encoder positions and feed them into the joint controller.
-  //    EncoderDriver::ReadJointAngleDeg() returns stub/simulated values until
-  //    the ARDUINO TODO in encoder_driver.cpp is implemented.
+  // 2. Read feedback / feed measured_state_ for supervisory control & published state.
+  //    EncoderDriver stays a stub unless you expose absolute angles to the MCU; CL57T holds its own inner loop.
+  //    Targets are clamped in JointController (JointMotionLimits) — Tier 1.5 exercise: tune ranges / homing datum.
   robot_arm::JointState measured{};
   for (int joint = 0; joint < robot_arm::kJointCount; ++joint) {
     measured.position_deg[joint]  = encoder_driver.ReadJointAngleDeg(joint);
@@ -166,12 +166,10 @@ void loop() {
   }
   joint_controller.UpdateFromSensors(measured);
 
-  // 3. Run one PID control step.
-  //    No-op until JointController::Step() TODO is implemented.
+  // 3. Supervisory PID → velocities (JointController::Step() is a TODO scaffold until implemented).
   joint_controller.Step(dt_s);
 
-  // 4. Output STEP/DIR signals.
-  //    No-op until StepperDriver::Tick() TODO is implemented.
+  // 4. Emit STEP/DIR (StepperDriver::Tick() TODO scaffold — Wire AccelStepper or timers per CONTRIBUTING.md).
   stepper_driver.Tick();
 
   // 5. Heartbeat watchdog: zero the command if the host goes silent.
