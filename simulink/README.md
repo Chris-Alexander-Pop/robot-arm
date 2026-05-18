@@ -1,5 +1,8 @@
 # Simulink Workspace
 
+> **Planned — not yet in repository**  
+> MATLAB/Simulink models (`.slx`), Embedded Coder output under `codegen/output/`, and the firmware adapter described in docs are **not checked in**. Firmware today uses **hand-coded** control in `firmware/stm32_core/lib/control/`. See [`docs/implementation/simulink_workflow.md`](../docs/implementation/simulink_workflow.md).
+
 Model-based design and embedded code generation for the 6-DOF arm. This workspace is the **control-design and codegen** counterpart to the Python/Gazebo workspace under `/simulation/`.
 
 For the full workflow rationale, conventions, and toolbox requirements, see [`../docs/implementation/simulink_workflow.md`](../docs/implementation/simulink_workflow.md).
@@ -35,7 +38,7 @@ simulink/
     └── README.md
 ```
 
-The actual `.slx` model files are authored in MATLAB — this directory is the agreed home for them. Generated C under `codegen/` is checked in so the firmware build does not require a MATLAB license.
+The actual `.slx` model files are authored in MATLAB — this directory is the agreed home for them. **When codegen is implemented**, generated C under `codegen/output/` may be checked in so the firmware build does not require a MATLAB license; that output is **not in the repository yet**.
 
 ---
 

@@ -1,6 +1,12 @@
 .tooling/
 .venv/
 
+# Local-only (not for public repo)
+.private/
+
+# Vendor datasheet PDFs — download locally; URLs in hardware/datasheets/README.txt
+hardware/datasheets/*.pdf
+
 # Python caches and test output
 __pycache__/
 *.py[cod]

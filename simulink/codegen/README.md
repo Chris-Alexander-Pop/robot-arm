@@ -1,6 +1,9 @@
 # Embedded Codegen
 
-Embedded Coder configuration and generated C source for the joint controllers. The generated code is checked in so the firmware (`firmware/stm32_core/`) builds without requiring a MATLAB license.
+> **Planned — not yet in repository**  
+> No `codegen/output/`, wrapper `.slx`, or firmware adapter is checked in yet. See [`../../docs/implementation/simulink_workflow.md`](../../docs/implementation/simulink_workflow.md).
+
+Embedded Coder configuration and generated C source for the joint controllers. **Target state:** generated code checked in so the firmware (`firmware/stm32_core/`) can build without a MATLAB license.
 
 ## Layout
 

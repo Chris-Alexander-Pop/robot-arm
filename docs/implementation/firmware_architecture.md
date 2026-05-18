@@ -54,14 +54,16 @@ It is not meant to replace the driver's own internal correction loop on J1-J4.
 
 > **For the open-loop TMC2209 wrist joints (J5/J6)**: The PID loop is effectively open-loop (encoder feedback not available by default). The STM32 simply commands position by counting pulses from the homed reference. If drift becomes a problem, AS5600 encoders can be added at the wrist.
 
-**Two implementations of this PID layer coexist in the firmware**, switchable per joint at compile time:
+> **Planned — not yet in repository:** Simulink Embedded Coder output and `joint_controller_generated.cpp` are **not checked in**. Firmware **today** uses only the hand-coded path below.
 
-| Path | Source | Used when |
+**Two implementations of this PID layer are planned**, switchable per joint at compile time once codegen exists:
+
+| Path | Source | Status |
 |:--|:--|:--|
-| **Hand-coded** | `firmware/stm32_core/lib/control/src/pid_controller.cpp` | Baseline / fallback; Checkpoint A; any joint without a Simulink model yet |
-| **Generated** | `firmware/stm32_core/lib/control/generated/joint_*_pid.{c,h}` (from `simulink/codegen/output/`) + adapter `joint_controller_generated.cpp` | Default path once the joint has a tuned Simulink controller; Checkpoint C onward |
+| **Hand-coded** | `firmware/stm32_core/lib/control/src/pid_controller.cpp`, `joint_controller.cpp` | **In tree** — baseline; Checkpoint A |
+| **Generated** | `firmware/stm32_core/lib/control/generated/` + adapter `joint_controller_generated.cpp` | **Planned** — Checkpoint C target; see [`simulink_workflow.md`](simulink_workflow.md) |
 
-The generated path satisfies the Simulink → firmware contract documented in [`../Constraints.md §3c`](../Constraints.md): fixed-step discrete at 1 ms, `float32` numerics, velocity-command output, no dynamic allocation. The hand-coded path uses the same interface so swapping is a single header `#define`. See [`simulink_workflow.md`](simulink_workflow.md) for how the generated code is produced.
+The generated path will satisfy the Simulink → firmware contract in [`../Constraints.md §3c`](../Constraints.md): fixed-step discrete at 1 ms, `float32` numerics, velocity-command output, no dynamic allocation. The hand-coded path uses the same interface so swapping is intended to be a single header `#define` when codegen lands.
 
 ### 2c. Encoder Reading (I2C — optional path, J5/J6 only)
 

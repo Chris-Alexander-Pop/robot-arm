@@ -26,8 +26,8 @@ Rationale: hand-tuning the joint PID on the real arm is slow, risky, and unrepea
 Scope decisions:
 
 - Simulink work lives in a new top-level `simulink/` directory, parallel to `simulation/`. Three simulators total — Python FK/IK, Simscape (Simulink), and Gazebo — each catching a different class of bug. See [`Scope.md §2e`](Scope.md#2e-model-based-design--codegen-simulink) for the layering rationale.
-- Generated C from Embedded Coder is **committed** to `simulink/codegen/output/` so the firmware build does not require a MATLAB license.
-- The codegen → firmware boundary is a single hand-written adapter (`joint_controller_generated.cpp`); no other firmware code touches generated functions. See [`Constraints.md §3c`](Constraints.md) for the contract.
+- **Planned (not in repo yet):** Generated C from Embedded Coder would live under `simulink/codegen/output/` so the firmware build does not require a MATLAB license.
+- **Planned:** The codegen → firmware boundary is a single hand-written adapter (`joint_controller_generated.cpp`); see [`Constraints.md §3c`](Constraints.md) for the contract. Firmware today uses hand-coded control only.
 - Scope-disciplined: Simulink is for **joint-level control design + codegen**, not for replacing MoveIt or the system-level Python tooling. Anti-patterns documented in [`implementation/simulink_workflow.md §6`](implementation/simulink_workflow.md).
 - The Simulink milestone slots into Checkpoint C (`Application.md §3`): same trajectory in Gazebo, Simscape, and on the real arm — three-way agreement within ±5° per joint is the exit criterion.
 

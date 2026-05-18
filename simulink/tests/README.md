@@ -1,5 +1,7 @@
 # Simulink Tests
 
+> **Planned — not yet in repository** — no test harness models are checked in. See [`../../docs/implementation/simulink_workflow.md`](../../docs/implementation/simulink_workflow.md).
+
 Simulink Test harnesses for the plant models and controllers.
 
 ## Planned harnesses

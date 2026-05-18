@@ -1,5 +1,7 @@
 # Plant Models
 
+> **Planned — not yet in repository** — no `.slx` plant models are checked in. See [`../../docs/implementation/simulink_workflow.md`](../../docs/implementation/simulink_workflow.md).
+
 Simscape Multibody plant models of the arm joints. Each model captures the full electromechanical chain from driver step-pulse input to joint-angle output.
 
 ## Planned models

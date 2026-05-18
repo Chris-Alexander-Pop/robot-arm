@@ -4,7 +4,7 @@
   <name>robot_arm_moveit</name>
   <version>0.0.0</version>
   <description>MoveIt 2 configuration and smoke-test package for the robot arm.</description>
-  <maintainer email="chris@example.com">Chris</maintainer>
+  <maintainer email="144747578+Chris-Alexander-Pop@users.noreply.github.com">Chris</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
