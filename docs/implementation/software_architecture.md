@@ -64,32 +64,42 @@ MoveIt 2 is the motion planning backbone. Its pipeline for a single pick-and-pla
 4. **Trajectory Parameterization**: Applies **trapezoidal** or **S-curve** velocity/acceleration limits to make the trajectory time-optimal but smooth
 5. **Execution**: Sends the parameterized trajectory to the `hw_interface_node` via `FollowJointTrajectory` action
 
-### 2d. High-Level Task Script (`pick_and_place_node`)
-A Python node that defines the application logic:
+### 2d. High-Level Task Script (`print_tending_node`)
+
+The headline application is **autonomous 3D-print bed tending** — see [`../Application.md`](../Application.md) for the full functional spec. The Python task node implements its state machine on top of MoveIt:
 
 ```python
-# Pseudocode sketch
+# Pseudocode sketch — see Application.md §3 for the full staged plan
 moveit = MoveGroupInterface("arm")
 moveit.set_max_velocity_scaling_factor(0.5)
 
-# 1. Move to pre-grasp pose (above the object)
-moveit.set_pose_target(pre_grasp_pose)
-moveit.go(wait=True)
+while True:
+    # 1. Block on the OctoPrint "print done" event (HTTP API, not CV — see Application.md §1d)
+    octoprint.wait_for_event("PrintDone")
 
-# 2. Open gripper
-gripper_client.send_goal(GripperCommand(position=0.08, max_effort=10.0))
+    # 2. Localize the part on the bed (ArUco marker for v1)
+    part_pose = vision.locate_part_on_bed()
 
-# 3. Move down to grasp
-moveit.set_pose_target(grasp_pose)
-moveit.go(wait=True)
+    # 3. Approach, grasp, lift
+    moveit.set_pose_target(part_pose.pre_grasp)
+    moveit.go(wait=True)
+    gripper.send_goal(GripperCommand(position=0.08, max_effort=10.0))
+    moveit.set_pose_target(part_pose.grasp)
+    moveit.go(wait=True)
+    gripper.send_goal(GripperCommand(position=0.0, max_effort=20.0))
+    moveit.set_pose_target(part_pose.lift)
+    moveit.go(wait=True)
 
-# 4. Close gripper
-gripper_client.send_goal(GripperCommand(position=0.0, max_effort=20.0))
+    # 4. Place in bin (one-time-calibrated pose)
+    moveit.set_pose_target(BIN_DROP_POSE)
+    moveit.go(wait=True)
+    gripper.send_goal(GripperCommand(position=0.08, max_effort=10.0))
 
-# 5. Lift and move to place location
-moveit.set_pose_target(place_pose)
-moveit.go(wait=True)
+    # 5. Tell the printer to start the next queued job
+    octoprint.start_next_job()
 ```
+
+Per the **sim-to-real method** (`Application.md §2`), every trajectory above is plannable in Gazebo via the same MoveIt stack with only the `ros2_control` plugin swapped — see §4 below. The `--sim-only` dry-run mode is a Checkpoint F deliverable.
 
 ---
 
@@ -148,9 +158,26 @@ software/
 ├── robot_arm_description/    # URDF, meshes, rviz configs
 ├── robot_arm_moveit/         # MoveIt 2 config, SRDF, kinematics.yaml
 ├── robot_arm_hw/             # ros2_control hardware interface plugin (C++)
-├── robot_arm_tasks/          # High-level Python task nodes (pick & place, etc.)
+├── robot_arm_tasks/          # High-level Python task nodes (print_tending_node, etc.)
 ├── launch/
 │   ├── sim.launch.py         # Launches Gazebo + MoveIt + RViz
 │   └── real.launch.py        # Launches hw_interface + MoveIt + RViz
 └── docker-compose.yml        # Container definitions for the above
 ```
+
+---
+
+## 6. Mapping to delivery checkpoints
+
+The software stack above is delivered incrementally against the staged checkpoints in [`../Application.md §3`](../Application.md#3-staged-delivery-plan):
+
+| Checkpoint | Software stack milestone |
+|:--|:--|
+| **A — It moves** | No ROS yet — bare Python serial sender against the STM32 |
+| **B — It moves in sim** | `robot_state_publisher` + URDF + RViz + hardware bridge node; joint sliders drive both |
+| **C — It plans** | `move_group` + `FollowJointTrajectory` action server wired through the hardware bridge |
+| **D — It sees** | Camera node + ArUco localization + pick-pose service + gripper control |
+| **E — It tends** | OctoPrint bridge + `print_tending_node` state machine + web dashboard |
+| **F — Sim predicted it** *(stretch)* | `--sim-only` dry-run mode + trajectory diff tool |
+
+See [`../../software/todo.md`](../../software/todo.md) for the per-checkpoint task breakdown.

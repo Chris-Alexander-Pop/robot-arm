@@ -1,0 +1,32 @@
+# MATLAB / Simulink build artifacts and cruft
+# Generated C code under codegen/output/ IS committed (see simulink/README.md)
+# so the firmware build does not require a MATLAB license. Everything below
+# is local build state or autosaves that should never be tracked.
+
+# Simulink Project / Cache
+slprj/
+*.slxc
+*.autosave
+*.asv
+*.bak
+
+# MATLAB-generated files
+*.mex*
+*.mat.bak
+
+# Embedded Coder build state (the generated *source* is committed; intermediate
+# build artifacts are not)
+codegen/**/build/
+codegen/**/*.o
+codegen/**/*.obj
+codegen/**/*.a
+codegen/**/*.lib
+
+# Local user settings
+.SimulinkProject/
+resources/.Project/
+prj-settings.xml
+
+# OS cruft
+.DS_Store
+Thumbs.db
