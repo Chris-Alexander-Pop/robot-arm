@@ -2,6 +2,14 @@
 
 A 6-Degree of Freedom (6-DOF) robotic arm project. This repository contains the mechanical CAD models, electrical schematics, firmware for the low-level microcontrollers, and high-level software/simulation code.
 
+## Application
+
+The arm targets **autonomous 3D-print bed tending** — sitting next to an FDM printer, detecting print completion, removing the finished part, and starting the next queued job. This closes the design loop: the arm's own structural parts are FDM-printed, so the application directly serves the build pipeline that produced it.
+
+Motion planning and execution are validated through a **sim-to-real digital twin**: every trajectory is first planned and dry-run in a Gazebo model of the arm (built from the same URDF) before executing on real hardware.
+
+See [`docs/Application.md`](docs/Application.md) for functional requirements, derived hardware specs, the staged delivery plan, and explicit non-goals.
+
 ## Directory Structure
 
 * `/docs` - Project design documents and specifications.
@@ -9,7 +17,8 @@ A 6-Degree of Freedom (6-DOF) robotic arm project. This repository contains the 
 * `/cad` - Mechanical design files (SolidWorks/Fusion 360).
 * `/firmware` - Low-level C/C++ code for ESP32/STM32 microcontrollers.
 * `/software` - High-level control software for Raspberry Pi 4 (ROS 2, kinematics).
-* `/simulation` - Local simulation environments and URDF models.
+* `/simulation` - System-level simulation (Python FK/IK, Gazebo) and URDF models.
+* `/simulink` - Model-based design: Simscape Multibody joint plant models, Simulink controller designs, and Embedded-Coder-generated C linked into the firmware build.
 
 ## Architecture Overview
 
