@@ -1,54 +1,103 @@
 # 6-DOF Robot Arm
 
-A 6-Degree of Freedom (6-DOF) robotic arm project. This repository contains the mechanical CAD models, electrical schematics, firmware for the low-level microcontrollers, and high-level software/simulation code.
+A 6-degree-of-freedom robotic arm for **autonomous 3D-print bed tending** — motion planning on a Raspberry Pi, real-time stepping on an **STM32**, and validation through simulation (Python, Gazebo URDF) plus Renode firmware-in-the-loop tests.
+
+**Stack:** ROS 2 Humble · MoveIt 2 · STM32 (PlatformIO) · KiCad · SolidWorks · Python simulation · Simulink workflow *(planned, not in repo yet)*
+
+[![CI](https://github.com/Chris-Alexander-Pop/robot-arm/actions/workflows/ci.yml/badge.svg)](https://github.com/Chris-Alexander-Pop/robot-arm/actions/workflows/ci.yml)
+
+## Status
+
+Active development — not ready for a versioned product release. Checkpoint progress and honest scope: [`docs/Application.md`](docs/Application.md).
 
 ## Application
 
-The arm targets **autonomous 3D-print bed tending** — sitting next to an FDM printer, detecting print completion, removing the finished part, and starting the next queued job. This closes the design loop: the arm's own structural parts are FDM-printed, so the application directly serves the build pipeline that produced it.
+The arm targets **autonomous 3D-print bed tending** — detecting print completion, removing the finished part, and starting the next job. Structural parts are FDM-printed (PETG cycloidal drives on driven joints).
 
-Motion planning and execution are validated through a **sim-to-real digital twin**: every trajectory is first planned and dry-run in a Gazebo model of the arm (built from the same URDF) before executing on real hardware.
+Trajectories are validated through a **sim-to-real** path: plan in ROS / Gazebo, exercise firmware on the bench and in Renode, then run on hardware.
 
-See [`docs/Application.md`](docs/Application.md) for functional requirements, derived hardware specs, the staged delivery plan, and explicit non-goals.
+## Architecture
 
-## Directory Structure
+| Layer | Location | Role |
+|-------|----------|------|
+| Planning | `software/ros2_ws/` | ROS 2, MoveIt 2, serial bridge |
+| Real-time control | `firmware/stm32_core/` | STM32 Nucleo-F401RE, UART protocol, hand-coded PID scaffold |
+| Simulation | `simulation/` | Python kinematics, Renode smoke tests |
+| Mechanical | `mechanical/` | SolidWorks; STEP exports where present |
+| Electrical | `hardware/` | KiCad, WireViz, datasheet references |
+| Model-based design | `simulink/` | **Planned** — README scaffold only |
 
-* `/docs` - Project design documents and specifications.
-* `/hardware` - KiCad electrical drafts (`hardware/kicad/robot_arm/`), component PDFs (`hardware/datasheets/`, see `hardware/datasheets/README.txt` for source URLs), and optional WireViz harness tooling (`hardware/wireviz/`, run `./scripts/create-wireviz-venv.sh`).
-* `/cad` - Mechanical design files (SolidWorks/Fusion 360).
-* `/firmware` - Low-level C/C++ code for ESP32/STM32 microcontrollers.
-* `/software` - High-level control software for Raspberry Pi 4 (ROS 2, kinematics).
-* `/simulation` - System-level simulation (Python FK/IK, Gazebo) and URDF models.
-* `/simulink` - Model-based design: Simscape Multibody joint plant models, Simulink controller designs, and Embedded-Coder-generated C linked into the firmware build.
+Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/Design_Choices.md`](docs/Design_Choices.md)
 
-## Architecture Overview
+## Quickstart (~10 minutes)
 
-1.  **High-Level Control (Software)**: A Raspberry Pi 4 handles inverse kinematics, trajectory planning, and overall orchestration.
-2.  **Low-Level Control (Firmware)**: ESP32 or STM32 microcontrollers handle real-time motor control loops, reading encoders, and communicating with the Pi.
-3.  **Mechanical/Electrical**: 6 revolute joints, actuators, and position feedback sensors.
+**Prerequisites:** Git, Python 3.11+, [PlatformIO](https://platformio.org/) (`pio`), Docker (for ROS tests).
 
-## Team Setup
+```bash
+git clone https://github.com/Chris-Alexander-Pop/robot-arm.git
+cd robot-arm
+./setup.sh
 
-Use one of the setup scripts from the repository root:
+# Firmware (host native tests — no hardware)
+./firmware/scripts/test.sh
 
-- Linux/macOS shell: `./setup.sh`
-- PowerShell: `./setup.ps1`
+# Python simulation
+./simulation/scripts/test.sh
 
-These scripts:
+# ROS / MoveIt (Docker; slower first run)
+./dev.sh up
+./dev.sh moveit-test
+```
 
-- create `simulation/.venv` and install `simulation/requirements.txt`
-- create `.tooling` and install local ROS CLI tools (`colcon`, `vcstool`, `rosdep`)
-- install Renode for the headless firmware simulation workflow
+Full matrix: [`TESTING.md`](TESTING.md)
 
-Tracked project files use **repository-relative** paths only (e.g. `${workspaceFolder}` in VS Code, `ROOT_DIR` derived from script paths in shell helpers). If you **move or rename** your clone directory, rerun `./setup.sh` / `.\setup.ps1` so the gitignored Renode wrapper under `.tooling/bin/` points at the portable Renode install under `.tooling/renode/` for your new location.
+## Repository map
 
-Python virtual environments are used for simulation (`simulation/.venv`), ROS CLI tooling (`.tooling/`), and optional WireViz harness diagrams (`hardware/wireviz/.venv`).
-The firmware C++ project uses PlatformIO, not a Python venv.
+| Path | Contents |
+|------|----------|
+| `docs/` | Requirements, architecture, journal |
+| `mechanical/` | CAD (SolidWorks); see [`docs/implementation/cad_exports.md`](docs/implementation/cad_exports.md) |
+| `hardware/` | KiCad, datasheets, WireViz |
+| `firmware/` | STM32 C++ (PlatformIO) |
+| `software/` | ROS 2 workspace + Docker |
+| `simulation/` | Python sim + Renode |
+| `simulink/` | Planned MBD workspace (not in tree yet) |
 
-## Dev Helpers
+## Verification (CI)
 
-Use one of the dev helpers from the repository root:
+| Layer | Local | CI job |
+|-------|-------|--------|
+| Firmware (native) | `./firmware/scripts/test.sh` | `firmware-native-tests` |
+| Firmware (Renode) | build `nucleo_f401re_renode`, `simulation/renode/tests/firmware_smoke.robot` | `firmware-build-and-renode` |
+| ROS / MoveIt | `./software/scripts/test.sh` | `software-behavioral-tests` |
+| Simulation | `./simulation/scripts/test.sh` | `simulation-tests` |
 
-- Shell: `./dev.sh [up|down|shell|build|launch]`
-- PowerShell: `./dev.ps1 [up|down|shell|build|launch]`
+## Team setup
 
-These commands run ROS with Docker Compose using the configuration in `software/docker-compose.yml`.
+- Linux/macOS: [`./setup.sh`](setup.sh)
+- Windows: [`./setup.ps1`](setup.ps1)
+
+Creates `simulation/.venv`, `.tooling/` ROS CLI tools, and Renode for headless firmware tests. Firmware uses PlatformIO, not a Python venv.
+
+Dev helpers: [`./dev.sh`](dev.sh) / [`./dev.ps1`](dev.ps1) for Dockerized ROS.
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`firmware/CONTRIBUTING.md`](firmware/CONTRIBUTING.md). Firmware uses intentional `TODO(contributor)` scaffolds for learning — not abandoned code.
+
+## Licenses and third-party materials
+
+- **Source code** (firmware, ROS, simulation, scripts): [MIT](LICENSE) — see [NOTICE](NOTICE).
+- **Datasheets:** vendor URLs in [`hardware/datasheets/README.txt`](hardware/datasheets/README.txt) (PDFs not in git; download locally if needed).
+- **CAD:** SolidWorks native files are proprietary format; STEP provided where applicable.
+- **StepperDriver** (firmware dependency, laurb9): MIT — STEP/DIR for hardware tests and future `StepperDriver` implementation.
+- **MATLAB / Simulink:** optional future workflow; trademarks of The MathWorks, Inc.
+
+## Security
+
+Hobby / bench project only — see [`SECURITY.md`](SECURITY.md). Serial control has no authentication; use a trusted USB-UART link.
+
+## Deep dive
+
+- [`docs/Application.md`](docs/Application.md) — checkpoints A–F
+- [`docs/Examples.md`](docs/Examples.md) — comparison with AR4, Moveo, etc.

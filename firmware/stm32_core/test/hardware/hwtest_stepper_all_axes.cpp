@@ -18,30 +18,29 @@
 #ifdef HWTEST_STEPPER_ALL_AXES
 
 #include <Arduino.h>
-#include <AccelStepper.h>
+#include <BasicStepperDriver.h>
 
 #include "core/types.h"
+#include "hwtest_stepper_common.h"
 #include "pinout.h"
 
-static constexpr float kJogSpeedStepS  = 400.0F;   // steps/s for jog moves
-static constexpr unsigned long kJogMs  = 1500UL;   // dwell time at jog speed
+static constexpr short kMotorFullSteps = 200;
+static constexpr short kMicrosteps      = 8;
+static constexpr float kStepsPerRev   = 1600.0F;
+static constexpr float kJogSpeedStepS = 400.0F;
+static constexpr unsigned long kJogMs = 1500UL;
 
-static AccelStepper steppers[robot_arm::kJointCount] = {
-  AccelStepper(AccelStepper::DRIVER, kJ1StepPin, kJ1DirPin),
-  AccelStepper(AccelStepper::DRIVER, kJ2StepPin, kJ2DirPin),
-  AccelStepper(AccelStepper::DRIVER, kJ3StepPin, kJ3DirPin),
-  AccelStepper(AccelStepper::DRIVER, kJ4StepPin, kJ4DirPin),
-  AccelStepper(AccelStepper::DRIVER, kJ5StepPin, kJ5DirPin),
-  AccelStepper(AccelStepper::DRIVER, kJ6StepPin, kJ6DirPin),
+static BasicStepperDriver steppers[robot_arm::kJointCount] = {
+  BasicStepperDriver(kMotorFullSteps, kJ1DirPin, kJ1StepPin),
+  BasicStepperDriver(kMotorFullSteps, kJ2DirPin, kJ2StepPin),
+  BasicStepperDriver(kMotorFullSteps, kJ3DirPin, kJ3StepPin),
+  BasicStepperDriver(kMotorFullSteps, kJ4DirPin, kJ4StepPin),
+  BasicStepperDriver(kMotorFullSteps, kJ5DirPin, kJ5StepPin),
+  BasicStepperDriver(kMotorFullSteps, kJ6DirPin, kJ6StepPin),
 };
 
 static void jog_joint(int joint_idx, float speed_step_s, unsigned long ms) {
-  steppers[joint_idx].setSpeed(speed_step_s);
-  const unsigned long start = millis();
-  while (millis() - start < ms) {
-    steppers[joint_idx].runSpeed();
-  }
-  steppers[joint_idx].setSpeed(0.0F);
+  dwellAtSpeed(steppers[joint_idx], speed_step_s, kStepsPerRev, ms);
 }
 
 void hwtest_stepper_all_axes_setup() {
@@ -53,11 +52,11 @@ void hwtest_stepper_all_axes_setup() {
   Serial.println("========================================");
 
   for (int j = 0; j < robot_arm::kJointCount; ++j) {
-    steppers[j].setMaxSpeed(kJogSpeedStepS * 1.5F);
-    steppers[j].setSpeed(0.0F);
+    steppers[j].begin(60.0F, kMicrosteps);
+    steppers[j].setSpeedProfile(BasicStepperDriver::CONSTANT_SPEED);
   }
 
-  Serial.println("All steppers configured. Starting jog sequence...");
+  Serial.println("All steppers configured (laurb9/StepperDriver). Starting jog sequence...");
   Serial.println();
 }
 

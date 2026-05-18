@@ -1,5 +1,7 @@
 # MATLAB Scripts
 
+> **Planned — not yet in repository** — setup scripts are not checked in. See [`../../docs/implementation/simulink_workflow.md`](../../docs/implementation/simulink_workflow.md).
+
 MATLAB `.m` helpers for the Simulink workspace.
 
 ## Planned scripts

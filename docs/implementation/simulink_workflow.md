@@ -1,5 +1,8 @@
 # Simulink Workflow — Model-Based Design & Embedded Codegen
 
+> **Planned — not yet in repository**  
+> No `.slx` models, `codegen/output/`, or firmware adapter are checked in. This document describes the **target workflow**. Firmware builds and CI pass with **hand-coded** control only (see [`firmware_architecture.md`](firmware_architecture.md)).
+
 <!--
 This document defines how Simulink is used on this project: what it produces,
 how those outputs cross the boundary into firmware, and the conventions that

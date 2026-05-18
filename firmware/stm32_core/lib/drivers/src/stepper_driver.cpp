@@ -3,13 +3,13 @@
 #ifdef ARDUINO
 
 // TODO(contributor): STEP/DIR for CL57T / CL42T (closed-loop servo is inside the motor driver pack).
-// AccelStepper is already wired in firmware/stm32_core/platformio.ini as a dependency; numbered checklist:
+// laurb9/StepperDriver (MIT) is in platformio.ini; see hwtest_stepper_*.cpp for usage patterns.
 //
-//   1. #include <Arduino.h>, <AccelStepper.h>, then "pinout.h" (MCU pins live under src/).
-//   2. Declare one AccelStepper(jointDriverMode, STEP, DIR) per joint — see kJnStepPin / kJnDirPin constants.
-//   3. Init(): setMaxSpeed / setAcceleration (derive max steps/s from (200 × microsteps) / 360 × desired °/s).
-//   4. SetJointVelocityDegS(): convert °/s → steps/s, call AccelStepper::setSpeed.
-//   5. Tick(): call runSpeed() on every joint every main loop iteration.
+//   1. #include <BasicStepperDriver.h> and "pinout.h".
+//   2. One BasicStepperDriver(200, DIR, STEP) per joint — note DIR before STEP in the constructor.
+//   3. Init(): begin(rpm, microsteps); setSpeedProfile(CONSTANT_SPEED).
+//   4. SetJointVelocityDegS(): convert °/s → steps/s → RPM; startMove / nextAction in Tick().
+//   5. Tick(): call nextAction() on each active joint every main loop iteration.
 //
 
 namespace robot_arm {

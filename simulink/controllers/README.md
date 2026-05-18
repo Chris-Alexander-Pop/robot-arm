@@ -1,5 +1,7 @@
 # Controllers
 
+> **Planned — not yet in repository** — no `.slx` controller models are checked in. See [`../../docs/implementation/simulink_workflow.md`](../../docs/implementation/simulink_workflow.md).
+
 Per-joint controller designs (PID + optional feed-forward / gravity-comp). Each controller is designed against the corresponding plant model in `../plant_models/`, tuned with PID Tuner, and built into a self-contained subsystem block ready for Embedded Coder.
 
 ## Planned controllers
