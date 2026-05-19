@@ -3,6 +3,7 @@
 
 # Local-only (not for public repo)
 .private/
+docs/finances/
 
 # Vendor datasheet PDFs — download locally; URLs in hardware/datasheets/README.txt
 hardware/datasheets/*.pdf
