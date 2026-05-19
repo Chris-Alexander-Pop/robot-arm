@@ -9,15 +9,15 @@ High-level robot orchestration stack.
 - `Dockerfile`, `docker-compose.yml`: reproducible dev/runtime environment.
 
 ## Onboarding
-- Start the ROS container with `./dev.sh up` from the repository root.
+- Start the ROS container with `./scripts/dev.sh up` from the repository root.
 - Build the ROS workspace with `software/scripts/build.sh` on Linux/macOS.
 - Build the ROS workspace with `software/scripts/build.ps1` on Windows.
 - Run the MoveIt smoke tests with `software/scripts/test.sh` on Linux/macOS.
 - Run the MoveIt smoke tests with `software/scripts/test.ps1` on Windows.
 
 ## MoveIt Bringup
-- Use `./dev.sh moveit-sim` to build the workspace and launch the MoveIt + RViz simulation entry point.
-- Use `./dev.sh moveit-real` to build the workspace and launch the MoveIt + RViz real-hardware entry point.
+- Use `./scripts/dev.sh moveit-sim` to build the workspace and launch the MoveIt + RViz simulation entry point.
+- Use `./scripts/dev.sh moveit-real` to build the workspace and launch the MoveIt + RViz real-hardware entry point.
 
 ## STM32 Simulation
 - Use Renode as the preferred STM32F401RE emulator for firmware-level integration tests.

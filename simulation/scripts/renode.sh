@@ -10,7 +10,7 @@ if [[ -x "$LOCAL_RENODE" ]]; then
 elif command -v renode >/dev/null 2>&1; then
   RENODE_BIN="$(command -v renode)"
 else
-  echo "Error: renode is not installed. Run ./setup.sh first."
+  echo "Error: renode is not installed. Run ./scripts/setup.sh first."
   exit 1
 fi
 

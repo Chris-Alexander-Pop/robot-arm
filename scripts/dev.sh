@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_CMD="docker compose"
 
 echo "=== Robot Arm Dev Helper ==="
@@ -21,8 +22,8 @@ if ! docker compose version &> /dev/null; then
     fi
 fi
 
-if [ ! -d "software" ]; then
-    echo "Error: Please run this script from the root of the robot-arm project directory."
+if [ ! -d "$ROOT_DIR/software" ]; then
+    echo "Error: Could not find software/ relative to repository root ($ROOT_DIR)."
     exit 1
 fi
 
@@ -31,23 +32,23 @@ COMMAND=${1:-}
 case "$COMMAND" in
     up)
         echo "Starting ROS 2 Container in the background..."
-        cd software && $COMPOSE_CMD up -d
+        cd "$ROOT_DIR/software" && $COMPOSE_CMD up -d
         ;;
     down)
         echo "Stopping ROS 2 Container..."
-        cd software && $COMPOSE_CMD down
+        cd "$ROOT_DIR/software" && $COMPOSE_CMD down
         ;;
     shell)
         echo "Dropping into ROS 2 Container shell..."
-        cd software && $COMPOSE_CMD exec ros2 bash
+        cd "$ROOT_DIR/software" && $COMPOSE_CMD exec ros2 bash
         ;;
     build)
         echo "Building ROS 2 Workspace (colcon build)..."
-        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "source /opt/ros/humble/setup.bash && colcon build"
+        cd "$ROOT_DIR/software" && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "source /opt/ros/humble/setup.bash && colcon build"
         ;;
     launch)
         echo "Launching RViz Visualization..."
-        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
+        cd "$ROOT_DIR/software" && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
             source /opt/ros/humble/setup.bash && \
             colcon build && \
             source install/setup.bash && \
@@ -55,7 +56,7 @@ case "$COMMAND" in
         ;;
     moveit-sim)
         echo "Launching MoveIt in simulation mode..."
-        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
+        cd "$ROOT_DIR/software" && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
             source /opt/ros/humble/setup.bash && \
             colcon build --packages-select robot_description robot_core robot_arm_moveit && \
             source install/setup.bash && \
@@ -63,7 +64,7 @@ case "$COMMAND" in
         ;;
     moveit-real)
         echo "Launching MoveIt in real-hardware mode..."
-        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
+        cd "$ROOT_DIR/software" && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
             source /opt/ros/humble/setup.bash && \
             colcon build --packages-select robot_description robot_core robot_arm_moveit && \
             source install/setup.bash && \
@@ -71,7 +72,7 @@ case "$COMMAND" in
         ;;
     moveit-test)
         echo "Running ROS behavioral tests..."
-        cd software && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
+        cd "$ROOT_DIR/software" && $COMPOSE_CMD exec -w /ros2_ws ros2 bash -c "\
             source /opt/ros/humble/setup.bash && \
             colcon build --packages-select robot_description robot_core robot_arm_moveit && \
             source install/setup.bash && \
@@ -83,7 +84,7 @@ case "$COMMAND" in
         "$0" moveit-test
         ;;
     *)
-        echo "Usage: ./dev.sh [COMMAND]"
+        echo "Usage: ./scripts/dev.sh [COMMAND]"
         echo ""
         echo "Commands:"
         echo "  up            : Start the ROS 2 container in the background"

@@ -194,6 +194,7 @@ robot-arm/
 │   ├── codegen/            # Embedded Coder configuration + generated C (committed)
 │   ├── scripts/            # MATLAB .m setup + parameter scripts
 │   └── tests/              # Simulink Test harnesses
-├── setup.sh                # Initial Docker environment setup
-└── dev.sh                  # Start/stop ROS 2 Docker containers
+├── scripts/                # Repo-wide setup, dev, and utility scripts
+│   ├── setup.sh            # Initial environment setup
+│   └── dev.sh              # Start/stop ROS 2 Docker containers
 ```
