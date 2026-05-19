@@ -1,10 +1,10 @@
 $ErrorActionPreference = "Stop"
 
 $RootDir = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$DevScript = Join-Path $RootDir "dev.ps1"
+$DevScript = Join-Path $RootDir "scripts/dev.ps1"
 
 if (-not (Test-Path $DevScript)) {
-    throw "dev.ps1 is missing. Run from the repository root workflow."
+    throw "scripts/dev.ps1 is missing."
 }
 
 & $DevScript build

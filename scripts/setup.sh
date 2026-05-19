@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT_DIR"
 
@@ -41,4 +41,4 @@ echo "[4/4] Verifying core commands"
 colcon list --base-paths "$ROOT_DIR/software/ros2_ws/src" || true
 
 echo "Setup complete."
-echo "Use './dev.sh up' to start ROS container and './dev.sh build' to build ROS packages."
+echo "Use './scripts/dev.sh up' to start ROS container and './scripts/dev.sh build' to build ROS packages."

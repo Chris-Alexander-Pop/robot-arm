@@ -36,7 +36,7 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/Design_Choices
 ```bash
 git clone https://github.com/Chris-Alexander-Pop/robot-arm.git
 cd robot-arm
-./setup.sh
+./scripts/setup.sh
 
 # Firmware (host native tests — no hardware)
 ./firmware/scripts/test.sh
@@ -45,8 +45,8 @@ cd robot-arm
 ./simulation/scripts/test.sh
 
 # ROS / MoveIt (Docker; slower first run)
-./dev.sh up
-./dev.sh moveit-test
+./scripts/dev.sh up
+./scripts/dev.sh moveit-test
 ```
 
 Full matrix: [`TESTING.md`](TESTING.md)
@@ -74,12 +74,12 @@ Full matrix: [`TESTING.md`](TESTING.md)
 
 ## Team setup
 
-- Linux/macOS: [`./setup.sh`](setup.sh)
-- Windows: [`./setup.ps1`](setup.ps1)
+- Linux/macOS: [`./scripts/setup.sh`](scripts/setup.sh)
+- Windows: [`./scripts/setup.ps1`](scripts/setup.ps1)
 
 Creates `simulation/.venv`, `.tooling/` ROS CLI tools, and Renode for headless firmware tests. Firmware uses PlatformIO, not a Python venv.
 
-Dev helpers: [`./dev.sh`](dev.sh) / [`./dev.ps1`](dev.ps1) for Dockerized ROS.
+Dev helpers: [`./scripts/dev.sh`](scripts/dev.sh) / [`./scripts/dev.ps1`](scripts/dev.ps1) for Dockerized ROS.
 
 ## Contributing
 

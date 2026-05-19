@@ -19,7 +19,7 @@ Host (Ubuntu 22.04)
     └── hw_interface  (Serial bridge node → STM32)
 ```
 
-**Why Docker on Pi?** Pinning ROS 2 to a container image eliminates dependency conflicts and makes it trivial to rebuild the environment after an SD card failure. The `dev.sh` / `setup.sh` scripts at the repo root handle container lifecycle.
+**Why Docker on Pi?** Pinning ROS 2 to a container image eliminates dependency conflicts and makes it trivial to rebuild the environment after an SD card failure. The `scripts/dev.sh` / `scripts/setup.sh` helpers handle container lifecycle.
 
 ---
 

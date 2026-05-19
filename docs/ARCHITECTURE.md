@@ -30,7 +30,7 @@ and (planned) Simulink model-based design.
 
 ## Build & verify
 
-- Setup: [`../setup.sh`](../setup.sh)
+- Setup: [`../scripts/setup.sh`](../scripts/setup.sh)
 - Tests: [`../TESTING.md`](../TESTING.md)
 ## Subsystem READMEs
 

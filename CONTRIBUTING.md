@@ -13,12 +13,12 @@ repository; contributions are welcome but may be reviewed slowly.
 ## Development setup
 
 ```bash
-./setup.sh          # Linux/macOS — venv, ROS CLI tooling, Renode
+./scripts/setup.sh          # Linux/macOS — venv, ROS CLI tooling, Renode
 ./firmware/scripts/test.sh
 ./simulation/scripts/test.sh
 ```
 
-ROS / MoveIt work uses `./dev.sh` and Docker; see [`software/README.md`](software/README.md).
+ROS / MoveIt work uses `./scripts/dev.sh` and Docker; see [`software/README.md`](software/README.md).
 
 ## Commit conventions (going forward)
 

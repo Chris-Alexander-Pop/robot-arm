@@ -1,7 +1,7 @@
 # Testing
 
 Commands below mirror [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
-First-time setup: [`./setup.sh`](setup.sh).
+First-time setup: [`./scripts/setup.sh`](scripts/setup.sh).
 
 ## Verification matrix
 

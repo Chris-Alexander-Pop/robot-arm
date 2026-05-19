@@ -3,9 +3,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-if [[ ! -x "$ROOT_DIR/dev.sh" ]]; then
-  echo "Error: dev.sh is missing or not executable. Run from the repository root workflow."
+if [[ ! -x "$ROOT_DIR/scripts/dev.sh" ]]; then
+  echo "Error: scripts/dev.sh is missing or not executable."
   exit 1
 fi
 
-"$ROOT_DIR/dev.sh" build
+"$ROOT_DIR/scripts/dev.sh" build

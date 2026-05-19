@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$RootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RootDir = Split-Path -Parent $PSScriptRoot
 Set-Location $RootDir
 
 Write-Host "=== Robot Arm Team Setup (PowerShell) ==="
@@ -49,4 +49,4 @@ if (Test-Path $Colcon) {
 }
 
 Write-Host "Setup complete."
-Write-Host "Use './dev.ps1 up' to start ROS container and './dev.ps1 build' to build ROS packages."
+Write-Host "Use './scripts/dev.ps1 up' to start ROS container and './scripts/dev.ps1 build' to build ROS packages."
