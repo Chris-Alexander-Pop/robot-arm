@@ -5,4 +5,4 @@ Placeholder for portfolio visuals (photos, RViz screenshots, architecture diagra
 Add files here with a short note in each filename or in this README for attribution
 and license (e.g. your own photos vs. screenshots from simulation).
 
-Link from the root [`README.md`](../README.md) once assets exist.
+README visuals live in [`public/`](../public/) and are embedded in the root [`README.md`](../README.md).

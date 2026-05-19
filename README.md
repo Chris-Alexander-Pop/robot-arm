@@ -6,6 +6,19 @@ A 6-degree-of-freedom robotic arm for **autonomous 3D-print bed tending** — mo
 
 [![CI](https://github.com/Chris-Alexander-Pop/robot-arm/actions/workflows/ci.yml/badge.svg)](https://github.com/Chris-Alexander-Pop/robot-arm/actions/workflows/ci.yml)
 
+## Preview
+
+<p align="center">
+  <img src="./public/joint-motion-demo.gif" alt="Joint motion demo" width="320" />
+</p>
+
+<p align="center">
+  <img src="./public/joint-cad-exterior.png" alt="Joint module — exterior CAD render" width="400" />
+  <img src="./public/joint-cad-cross-section.png" alt="Joint module — cross-section CAD render" width="400" />
+</p>
+
+Bench motion clip (22–28 s from `20260516_220314_1_1.mp4`); CAD renders from SolidWorks.
+
 ## Status
 
 Active development — not ready for a versioned product release. Checkpoint progress and honest scope: [`docs/Application.md`](docs/Application.md).

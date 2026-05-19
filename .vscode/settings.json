@@ -1,4 +1,7 @@
 {
+  "workbench.editorAssociations": {
+    "*.md": "default"
+  },
   "C_Cpp.default.configurationProvider": "platformio.platformio-ide",
   "files.exclude": {
     "**/.pio": true,
