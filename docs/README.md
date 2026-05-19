@@ -11,4 +11,4 @@ Recommended reading order for reviewers (~15 minutes to orientation).
 7. **[`Examples.md`](Examples.md)** — comparison with other open arm designs
 8. **[`../firmware/CONTRIBUTING.md`](../firmware/CONTRIBUTING.md)** — firmware learning scaffold
 
-Optional depth: [`finances/BOM.md`](finances/BOM.md), [`implementation/electrical_design.md`](implementation/electrical_design.md), [`Journal.md`](Journal.md).
+Optional depth: [`implementation/electrical_design.md`](implementation/electrical_design.md), [`Journal.md`](Journal.md).

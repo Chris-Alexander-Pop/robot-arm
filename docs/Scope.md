@@ -159,9 +159,6 @@ The hardware phases below (budget-driven) are interleaved with the application-d
 robot-arm/
 ├── cad/                    # Fusion 360 / FreeCAD source files
 ├── docs/
-│   ├── finances/
-│   │   ├── BOM.md          # Full Bill of Materials (phase 1 & 2)
-│   │   └── EXPENSES.md     # Actual spending tracker
 │   ├── implementation/
 │   │   ├── mechanical_design.md
 │   │   ├── electrical_design.md
