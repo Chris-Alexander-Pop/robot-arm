@@ -43,7 +43,8 @@ Include:
 - STM32 header / breakout
 - 74HC245 level shifter
 - UART to Raspberry Pi 4
-- I2C bus to TCA9548A
+- RS-485 transceiver to daisy-chained ESP32 joint nodes (see [`distributed_bus_architecture.md`](distributed_bus_architecture.md))
+- I2C bus to TCA9548A (optional wrist AS5600 only)
 - STEP / DIR / ENABLE outputs
 - Fault inputs from driver ALARM pins
 - Home sensor inputs

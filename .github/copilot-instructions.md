@@ -4,7 +4,9 @@ This repository is a 6-DOF robot arm project split across mechanical design, emb
 
 ## Project Map
 - `docs/` holds the project scope, calculations, design rationale, and subsystem implementation notes.
-- `firmware/stm32_core/` is the STM32 PlatformIO project for low-level motor control.
+- `firmware/stm32_core/` is the STM32 PlatformIO project (RS-485 bus master, Pi UART).
+- `firmware/joint_node/` is the ESP32 PlatformIO project (one image, per-node envs).
+- `firmware/lib/bus_protocol/` is shared RS-485 framing for both targets.
 - `software/ros2_ws/` is the ROS 2 workspace for the high-level control stack.
 - `simulation/` is the Python-first kinematics and trajectory sandbox.
 - Repo helper scripts live in `scripts/` (`setup.sh`, `setup.ps1`, `dev.sh`, `dev.ps1`).
@@ -29,8 +31,9 @@ This repository is a 6-DOF robot arm project split across mechanical design, emb
   - Create the virtual environment with the repo setup scripts.
   - Run tests from `simulation/` with `pytest`.
 - Firmware:
-  - Work inside `firmware/stm32_core/` with PlatformIO.
-  - Use the configured `nucleo_f401re` environment (Nucleo-F401RE).
+  - STM32: `firmware/stm32_core/` — env `nucleo_f401re`.
+  - Joint nodes: `firmware/joint_node/` — envs `node_j1` … `node_gripper` or `esp32dev`.
+  - Build all: `firmware/scripts/build.sh`.
 
 ## Conventions And Pitfalls
 - Do not treat `software/ros2_ws/build`, `software/ros2_ws/install`, or `software/ros2_ws/log` as source; they are generated ROS artifacts.

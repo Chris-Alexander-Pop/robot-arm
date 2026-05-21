@@ -1,0 +1,48 @@
+# 35_bus_harness
+# Daisy-chained 4-conductor link: RS-485 A/B + 24V_MOTOR/GND_M through each joint.
+# See docs/implementation/distributed_bus_architecture.md
+
+connectors:
+  BASE_BUS:
+    type: 4-pin bus (in/out)
+    pinlabels: [RS485_A, RS485_B, P24V, GND_M]
+    notes: Master STM32 + 120 ohm termination. Second termination at GRIPPER_BUS out.
+
+  J1_BUS_IN:
+    type: 4-pin bus in
+    pinlabels: [RS485_A, RS485_B, P24V, GND_M]
+  J1_BUS_OUT:
+    type: 4-pin bus out
+    pinlabels: [RS485_A, RS485_B, P24V, GND_M]
+
+  J6_BUS_OUT:
+    type: 4-pin bus out
+    pinlabels: [RS485_A, RS485_B, P24V, GND_M]
+
+  GRIPPER_BUS:
+    type: 4-pin bus in
+    pinlabels: [RS485_A, RS485_B, P24V, GND_M]
+    notes: Last node on chain; enable termination here.
+
+cables:
+  W_BASE_TO_J1:
+    category: bundle
+    wirelabels: [RS485_A, RS485_B, P24V, GND_M]
+    gauge: [22 AWG, 22 AWG, 16 AWG, 16 AWG]
+    colors: [WH, GN, RD, BK]
+    length: 0.3
+    notes: Through J1 link cavity; twisted pair for A/B.
+
+  W_J1_TO_J6_STUB:
+    category: bundle
+    wirelabels: [RS485_A, RS485_B, P24V, GND_M]
+    gauge: [22 AWG, 22 AWG, 18 AWG, 18 AWG]
+    colors: [WH, GN, RD, BK]
+    length: 1.2
+    notes: Placeholder — one segment per joint in full BOM.
+
+connections:
+  - BASE_BUS: [1-4] <-> W_BASE_TO_J1: [1-4]
+  - W_BASE_TO_J1: [1-4] <-> J1_BUS_IN: [1-4]
+  - J1_BUS_OUT: [1-4] <-> W_J1_TO_J6_STUB: [1-4]
+  - W_J1_TO_J6_STUB: [1-4] <-> GRIPPER_BUS: [1-4]

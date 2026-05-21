@@ -40,6 +40,10 @@ The following nodes make up the software stack:
                         ↓
                     [ STM32 UART ]
                         ↓
+                 [ RS-485 bus ]
+                        ↓
+              [ ESP32 nodes × 7 ]
+                        ↓
                     [ Motors ]
 ```
 
@@ -51,8 +55,8 @@ The following nodes make up the software stack:
 ### 2b. `hw_interface_node`
 - Implements a `ros2_control` `SystemInterface` hardware plugin
 - Opens the STM32 serial port (e.g. `/dev/ttyUSB0` at 115200 baud)
-- **Write loop**: Subscribes to `/follow_joint_trajectory` action goals; sends `SET_JOINTS` packets to STM32 at the required timestep rate
-- **Read loop**: Periodically sends `GET_STATUS` to STM32; publishes parsed joint angles to `/joint_states`
+- **Write loop**: Subscribes to `/follow_joint_trajectory` action goals; sends `SET_JOINTS` packets to STM32 at the required timestep rate (STM32 fans out to RS-485 joint nodes)
+- **Read loop**: Periodically sends `GET_STATUS` to STM32; publishes parsed joint angles to `/joint_states` (aggregated from the bus by the STM32 master)
 - **Fault handling**: On receiving a `FAULT` packet, publishes to `/arm_fault` topic and cancels the active trajectory action
 
 ### 2c. MoveIt 2 (`move_group` node)

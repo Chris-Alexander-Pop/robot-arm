@@ -1,0 +1,12 @@
+{
+  "name": "bus_protocol",
+  "version": "0.1.0",
+  "description": "RS-485 bus framing shared by STM32 master and ESP32 joint nodes",
+  "authors": [
+    {
+      "name": "robot-arm"
+    }
+  ],
+  "frameworks": "*",
+  "platforms": "*"
+}
