@@ -47,24 +47,27 @@ The LM2596-based buck converter modules are compact and inexpensive. A **separat
 
 ## 2. Compute Hierarchy
 
-The system uses a **two-tier compute architecture** to separate real-time motor control from high-level planning:
+The system uses a **three-tier compute architecture**: planning on the Pi, bus mastering on the base STM32, and **per-joint** real-time control on ESP32 modules next to each driver.
 
 ```
 [ Raspberry Pi 4 ]          <-- High-Level (ROS 2, MoveIt 2, IK/FK)
         |
     USB / UART
         |
-    [ STM32 ]               <-- Low-Level (Real-time PWM, PID, I2C encoders)
+    [ STM32 @ base ]        <-- Bus master, Pi protocol, system safety
         |
-  +-----------+-----------+
-  |           |           |
-[CL57T x2] [CL42T x2] [TMC2209 x2]
-  |           |           |
-NEMA23x2   NEMA17x2   NEMA14x2
+    RS-485 (2-wire) + 24V/GND daisy chain through the arm
+        |
+  [ESP32+driver] x6  +  [ESP32 gripper]
+        |
+   Motors local to each joint
 ```
 
 - The **Raspberry Pi 4** runs ROS 2 in Docker containers. It handles trajectory planning, inverse kinematics, and user-facing interfaces. It does **not** perform any real-time motor control.
-- The **STM32** is a hard-real-time microcontroller. It runs a >1 kHz control loop, generates STEP/DIR pulses, reads encoder feedback, and executes PID corrections.
+- The **STM32** at the control box polls joint nodes on **RS-485** (921600 baud) and bridges telemetry/commands to the Pi over UART. See [`distributed_bus_architecture.md`](distributed_bus_architecture.md).
+- Each **ESP32 joint node** generates STEP/DIR (or TMC UART) for its local driver, runs homing on the local Hall sensor, and disables the driver on bus watchdog timeout.
+
+A **legacy centralized** layout (one STM32, all drivers in the box) remains documented in wireviz `20_control_signals.yml` for bring-up; production targets the **4-conductor bus harness** (`hardware/wireviz/35_bus_harness.yml`).
 
 ---
 
@@ -146,14 +149,18 @@ On each joint, an **A3144 Hall effect sensor** and a small neodymium magnet esta
 - **Wire Ferrules (Crimped)**: All wires inserted into screw-terminal blocks (drivers, PSU) are terminated with ferrules. Bare stranded wire under a screw terminal can cold-flow and loosen over time — ferrules prevent this.
 - **PET Sleeving & Drag Chain**: Motor cables are bundled in braided PET sleeving and routed through a drag chain at the base rotation joint to protect them from fatigue during continuous J1 sweeps.
 
-### 5c. STM32 Breakout / Protoboard
+### 5c. Harness — Bus vs centralized
 
-To avoid point-to-point breadboard wiring in the final assembly, a **custom perfboard "hat"** is constructed for the STM32:
-- Pin headers for each driver's STEP/DIR/ENABLE lines
-- Screw terminals for 5V logic power and ground
-- Pads for the 74HC245 level shifter IC
-- I2C header for TCA9548A multiplexer
-- UART header for Raspberry Pi 4 connection
+**Distributed (target):** Each joint PCB exposes `BUS_IN` / `BUS_OUT` (RS-485 A/B + 24V/GND). Motor phases terminate at the joint. Base board holds STM32 + RS-485 transceiver + Pi UART + 120 Ω termination.
+
+**Centralized (bring-up):** Custom perfboard "hat" on the Nucleo with STEP/DIR/ENABLE to all drivers, 74HC245, Pi UART — see `20_control_signals.yml`.
+
+### 5d. STM32 Breakout / Protoboard (base)
+
+- RS-485 transceiver + DE/RE GPIO
+- UART header for Raspberry Pi 4
+- 24V distribution to first bus segment
+- Optional: legacy STEP/DIR headers during migration
 
 ---
 

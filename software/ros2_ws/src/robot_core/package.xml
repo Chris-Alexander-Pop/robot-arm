@@ -4,7 +4,7 @@
   <name>robot_core</name>
   <version>0.0.0</version>
   <description>High-level planning and hardware bridge package for the robot arm.</description>
-  <maintainer email="chris@example.com">Chris</maintainer>
+  <maintainer email="144747578+Chris-Alexander-Pop@users.noreply.github.com">Chris</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

@@ -169,7 +169,7 @@ void loop() {
   // 3. Supervisory PID → velocities (JointController::Step() is a TODO scaffold until implemented).
   joint_controller.Step(dt_s);
 
-  // 4. Emit STEP/DIR (StepperDriver::Tick() TODO scaffold — Wire AccelStepper or timers per CONTRIBUTING.md).
+  // 4. Emit STEP/DIR (StepperDriver::Tick() TODO scaffold — wire laurb9/StepperDriver per CONTRIBUTING.md).
   stepper_driver.Tick();
 
   // 5. Heartbeat watchdog: zero the command if the host goes silent.

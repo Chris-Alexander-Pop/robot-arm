@@ -1,0 +1,3 @@
+.pio/
+.vscode/.browse*
+compile_commands.json

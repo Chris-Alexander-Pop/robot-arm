@@ -4,10 +4,12 @@ This repository is a 6-DOF robot arm project split across mechanical design, emb
 
 ## Project Map
 - `docs/` holds the project scope, calculations, design rationale, and subsystem implementation notes.
-- `firmware/stm32_core/` is the STM32 PlatformIO project for low-level motor control.
+- `firmware/stm32_core/` is the STM32 PlatformIO project (RS-485 bus master, Pi UART).
+- `firmware/joint_node/` is the ESP32 PlatformIO project (one image, per-node envs).
+- `firmware/lib/bus_protocol/` is shared RS-485 framing for both targets.
 - `software/ros2_ws/` is the ROS 2 workspace for the high-level control stack.
 - `simulation/` is the Python-first kinematics and trajectory sandbox.
-- Root helper scripts are `setup.sh`, `setup.ps1`, `dev.sh`, and `dev.ps1`.
+- Repo helper scripts live in `scripts/` (`setup.sh`, `setup.ps1`, `dev.sh`, `dev.ps1`).
 
 ## Preferred Workflow
 - Read the relevant subsystem docs before changing code: start with `docs/Scope.md`, `docs/Design_Choices.md`, and the matching file under `docs/implementation/`.
@@ -17,24 +19,25 @@ This repository is a 6-DOF robot arm project split across mechanical design, emb
 
 ## Build And Run
 - Initial setup:
-  - Linux/macOS: `./setup.sh`
-  - PowerShell: `./setup.ps1`
+  - Linux/macOS: `./scripts/setup.sh`
+  - PowerShell: `./scripts/setup.ps1`
 - ROS 2 dev container:
-  - Start: `./dev.sh up`
-  - Stop: `./dev.sh down`
-  - Shell: `./dev.sh shell`
-  - Build: `./dev.sh build`
-  - Launch RViz demo: `./dev.sh launch`
+  - Start: `./scripts/dev.sh up`
+  - Stop: `./scripts/dev.sh down`
+  - Shell: `./scripts/dev.sh shell`
+  - Build: `./scripts/dev.sh build`
+  - Launch RViz demo: `./scripts/dev.sh launch`
 - Simulation:
   - Create the virtual environment with the repo setup scripts.
   - Run tests from `simulation/` with `pytest`.
 - Firmware:
-  - Work inside `firmware/stm32_core/` with PlatformIO.
-  - Use the configured `nucleo_f401re` environment (Nucleo-F401RE).
+  - STM32: `firmware/stm32_core/` — env `nucleo_f401re`.
+  - Joint nodes: `firmware/joint_node/` — envs `node_j1` … `node_gripper` or `esp32dev`.
+  - Build all: `firmware/scripts/build.sh`.
 
 ## Conventions And Pitfalls
 - Do not treat `software/ros2_ws/build`, `software/ros2_ws/install`, or `software/ros2_ws/log` as source; they are generated ROS artifacts.
-- `dev.sh` expects to be run from the repository root.
+- `scripts/dev.sh` resolves paths from the repository root.
 - The ROS 2 stack is containerized; source the ROS environment inside the container before building or launching.
 - Keep simulation code Python-first and testable with `pytest`.
 - Preserve the existing split between documentation, firmware, software, and simulation; avoid moving responsibilities across those boundaries unless the project plan requires it.

@@ -1,5 +1,7 @@
 # Mechanical Roadmap
 
+> **Drive design:** J3–J4 use **cycloidal reducers** on driven joints (see [`docs/Design_Choices.md`](../docs/Design_Choices.md)). The belt-drive item in INTEGRATION below is legacy brainstorming unless you explicitly choose belts for the wrist.
+
 This document outlines the mechanical design, CAD, 3D printing configurations, and assembly instructions.
 
 ## DEVELOPMENT
@@ -18,7 +20,7 @@ This document outlines the mechanical design, CAD, 3D printing configurations, a
 - [ ] **Mass Printing**: Print all structural arm sections, linkages, and housings with high infill/wall count.
 - [ ] **Hardware Sourcing**: Procurement of all M3/M4 bolts, nuts, bearings, belts, and brass inserts.
 - [ ] **Sub-assembly - Base & Shoulder**: Install bearings, press-fit motors, and assemble the primary lifting joints.
-- [ ] **Belt Drive System**: Install pulleys, route, and tension GT2 belts for the upper arm and wrist (Joints 3-6) if applicable.
+- [ ] **Wrist / upper-arm drives**: Install cycloidal stages per current CAD (legacy note: GT2 belts were an earlier concept — use cycloidal design unless intentionally changed).
 - [ ] **Cable Management**: Route power, encoder, and motor cables through the internal pathways of the linkages.
 - [ ] **End-Effector Integration**: Attach the 2-DOF wrist and modular gripper.
 - [ ] **Static Stress Test**: Verify the fully assembled arm doesn't deflect significantly or back-drive under its own weight when powered off.
