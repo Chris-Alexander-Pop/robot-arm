@@ -7,7 +7,7 @@ This tree is deliberately layered for learning: **`JointController::Step`** and 
 Implement motion on hardware in this order:
 
 1. **`Step()`** — read [`joint_controller.cpp`](stm32_core/lib/control/src/joint_controller.cpp); wire `pid_[]`, saturation, then `stepper_driver_.SetJointVelocityDegS()`. Start **P-only**, add Ki/Kd cautiously once pulses look stable.
-2. **STEP/DIR** — follow the numbered **`TODO(contributor)`** checklist in **`stepper_driver.cpp`**, [`pinout.h`](stm32_core/src/pinout.h), PlatformIO **`stm32_core/platformio.ini`** (AccelStepper dep is already declared).
+2. **STEP/DIR** — follow the numbered **`TODO(contributor)`** checklist in **`stepper_driver.cpp`**, [`pinout.h`](stm32_core/src/pinout.h), PlatformIO **`stm32_core/platformio.ini`** (laurb9/StepperDriver, MIT, is already declared).
 3. **Soft limits / cable sanity** — `JointMotionLimits` + `ClampJointCommand` are implemented; practise tuning per joint (`SetMotionLimits`, `AlignLimitsToMeasured` after homing).
 
 Run [`firmware/scripts/test.sh`](scripts/test.sh) (`pio run -e native` + native harness) after each step.

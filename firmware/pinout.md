@@ -167,3 +167,20 @@ For now, treat this as the working pinout policy:
 - Add an I2C GPIO expander if the board runs out of clean interrupt-capable inputs.
 
 That approach fits the STM32F401RE resource limits without overcommitting the design too early.
+
+---
+
+## RS-485 bus master (distributed architecture)
+
+When using ESP32 joint nodes ([`docs/implementation/distributed_bus_architecture.md`](../docs/implementation/distributed_bus_architecture.md)), the Nucleo acts as the **RS-485 master** only — it no longer bit-bangs STEP/DIR for remote joints.
+
+| Function | Suggested pin | Notes |
+|:---|:---|:---|
+| `RS485_TX` | TBD (`USARTx_TX`) | Through MAX3485 |
+| `RS485_RX` | TBD (`USARTx_RX`) | |
+| `RS485_DE` | TBD (GPIO) | HIGH = transmit enabled |
+| Pi `UART_TX/RX` | `PA9` / `PA10` | Unchanged host link |
+
+**Termination:** 120 Ω at the Nucleo transceiver (bus end). Second terminator at the gripper node.
+
+Joint-node GPIO (STEP/DIR/ENABLE/ALARM/HOME) lives in [`joint_node/src/pinout.h`](joint_node/src/pinout.h).

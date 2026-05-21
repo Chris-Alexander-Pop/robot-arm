@@ -8,4 +8,5 @@
 #include "../test/test_packet_codec.cpp"
 #include "../test/test_pid_controller.cpp"
 #include "../test/test_stepper_driver_contract.cpp"
+#include "../test/test_bus_frame_codec.cpp"
 #include "../test/test_main.cpp"

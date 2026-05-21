@@ -1,0 +1,26 @@
+robot-arm — Third-Party Notices
+
+This project is licensed under the MIT License (see LICENSE) for original source
+code authored by the maintainers. The following components and materials are
+governed by separate terms:
+
+1. StepperDriver (Laurentiu Badea / laurb9) — MIT License.
+   Linked by firmware via PlatformIO for STEP/DIR hardware tests and future StepperDriver.
+
+2. Renode — MIT License. Used in CI only (not vendored in this repository).
+   https://github.com/renode/renode
+
+3. ROS 2 Humble — multiple open-source licenses (via Docker base image in
+   `software/Dockerfile`). Used for development and testing; not vendored here.
+
+4. WireViz — GPL-3.0. Optional development tool for `hardware/wireviz/` YAML.
+
+5. Datasheets — third-party documents, NOT in this repository (URLs only in
+   `hardware/datasheets/README.txt`). Not licensed under the project MIT License.
+
+6. SolidWorks files under `mechanical/sw-models/` — proprietary CAD format.
+   Neutral exports (`.step`) are provided where applicable.
+
+7. MATLAB / Simulink — optional workflow described in documentation; trademarks
+   of The MathWorks, Inc. No MathWorks binaries are distributed in this
+   repository unless explicitly stated in a future release.

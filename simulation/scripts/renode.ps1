@@ -9,7 +9,7 @@ if (Test-Path $LocalRenode) {
 } elseif (Get-Command renode -ErrorAction SilentlyContinue) {
     $RenodeBin = (Get-Command renode).Source
 } else {
-    throw "renode is not installed. Run .\setup.ps1 first."
+    throw "renode is not installed. Run .\scripts\setup.ps1 first."
 }
 
 ${FirmwareElf} = (Join-Path $RootDir "firmware/stm32_core/.pio/build/nucleo_f401re_renode/firmware.elf") -replace '\\', '/'

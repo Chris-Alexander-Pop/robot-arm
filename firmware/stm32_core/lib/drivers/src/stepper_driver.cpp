@@ -105,6 +105,15 @@ float StepperDriver::joint_velocity_deg_s(int joint_index) const {
 }  // namespace robot_arm
 
 #else  // native unit tests — no Arduino / AccelStepper
+// TODO(contributor): STEP/DIR for CL57T / CL42T (closed-loop servo is inside the motor driver pack).
+// laurb9/StepperDriver (MIT) is in platformio.ini; see hwtest_stepper_*.cpp for usage patterns.
+//
+//   1. #include <BasicStepperDriver.h> and "pinout.h".
+//   2. One BasicStepperDriver(200, DIR, STEP) per joint — note DIR before STEP in the constructor.
+//   3. Init(): begin(rpm, microsteps); setSpeedProfile(CONSTANT_SPEED).
+//   4. SetJointVelocityDegS(): convert °/s → steps/s → RPM; startMove / nextAction in Tick().
+//   5. Tick(): call nextAction() on each active joint every main loop iteration.
+//
 
 namespace robot_arm {
 
@@ -136,4 +145,4 @@ float StepperDriver::joint_velocity_deg_s(int joint_index) const {
 
 }  // namespace robot_arm
 
-#endif  
+#endif  // ARDUINO

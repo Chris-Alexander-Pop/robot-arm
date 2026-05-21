@@ -7,7 +7,9 @@ its responsibilities, control loop design, communication protocol, and safety lo
 
 ## 1. Overview & Role
 
-The STM32 is the **real-time spinal cord** of the robot. Its singular mandate is deterministic, low-latency motor control. It does not perform trajectory planning or inverse kinematics — those are the Raspberry Pi's job. The STM32 simply receives target joint states and executes them as fast and precisely as physics allows.
+The STM32 at the base is the **bus master** and **Pi gateway**. Joint-level real-time work (STEP/DIR, homing, driver ENABLE, local watchdog) runs on **ESP32 modules** co-located with each driver — see [`distributed_bus_architecture.md`](distributed_bus_architecture.md).
+
+The STM32 does not perform trajectory planning or inverse kinematics — those remain on the Raspberry Pi. It receives target joint states over UART, issues RS-485 commands to nodes `1..7`, aggregates telemetry, and enforces system-wide safety (serial timeout, e-stop policy).
 
 **Why a dedicated microcontroller instead of doing everything on the Pi?**
 A Linux-based system (including the Raspberry Pi running ROS 2) is not a real-time OS. The scheduler can preempt any process for milliseconds at a time. A stepper motor requires pulse trains generated with microsecond-level precision — a 1ms jitter in pulse timing produces audible stuttering, vibration, and degraded position accuracy. The STM32 solves this with hardware timers that generate STEP pulses entirely in hardware, irrespective of software load.
@@ -53,6 +55,17 @@ This makes the PID layer useful for:
 It is not meant to replace the driver's own internal correction loop on J1-J4.
 
 > **For the open-loop TMC2209 wrist joints (J5/J6)**: The PID loop is effectively open-loop (encoder feedback not available by default). The STM32 simply commands position by counting pulses from the homed reference. If drift becomes a problem, AS5600 encoders can be added at the wrist.
+
+> **Planned — not yet in repository:** Simulink Embedded Coder output and `joint_controller_generated.cpp` are **not checked in**. Firmware **today** uses only the hand-coded path below.
+
+**Two implementations of this PID layer are planned**, switchable per joint at compile time once codegen exists:
+
+| Path | Source | Status |
+|:--|:--|:--|
+| **Hand-coded** | `firmware/stm32_core/lib/control/src/pid_controller.cpp`, `joint_controller.cpp` | **In tree** — baseline; Checkpoint A |
+| **Generated** | `firmware/stm32_core/lib/control/generated/` + adapter `joint_controller_generated.cpp` | **Planned** — Checkpoint C target; see [`simulink_workflow.md`](simulink_workflow.md) |
+
+The generated path will satisfy the Simulink → firmware contract in [`../Constraints.md §3c`](../Constraints.md): fixed-step discrete at 1 ms, `float32` numerics, velocity-command output, no dynamic allocation. The hand-coded path uses the same interface so swapping is intended to be a single header `#define` when codegen lands.
 
 ### 2c. Encoder Reading (I2C — optional path, J5/J6 only)
 
@@ -130,17 +143,29 @@ A lightweight **binary packet protocol** is used for high-throughput, low-latenc
 
 ```
 firmware/
-├── src/
-│   ├── main.cpp              # Initialization, main loop
-│   ├── stepper.cpp/.h        # Timer-based pulse generation per joint
-│   ├── pid.cpp/.h            # Generic PID controller struct
-│   ├── encoder.cpp/.h        # Optional AS5600 reads (J5/J6 only) - mux used only if both fitted
-│   ├── homing.cpp/.h         # Homing state machine
-│   ├── comms.cpp/.h          # UART packet parser and builder
-│   └── safety.cpp/.h         # Fault detection and e-stop logic
-├── include/
-│   └── config.h              # Pin definitions, joint limits, PID defaults
-└── platformio.ini            # STM32 target, build flags
+├── lib/bus_protocol/           # RS-485 framing (STM32 + ESP32)
+├── joint_node/                 # ESP32 slave — PlatformIO project
+│   └── src/                    # rs485_port, joint_node_app, pinout
+├── stm32_core/                 # Nucleo master — PlatformIO project
+│   ├── lib/bus/                # BusMaster (poll nodes, Pi bridge)
+│   ├── lib/protocol/           # Pi UART packets (0xAA 0x55)
+│   ├── lib/control/            # Supervisory PID (base / sim path)
+│   └── lib/drivers/            # Legacy centralized drivers (bring-up)
+└── scripts/build.sh            # Builds stm32_core + joint_node
 ```
 
-All **joint-specific parameters** (pin numbers, angular limits, home directions, PID gains) are in `config.h` so they can be updated without touching control logic files.
+**Joint nodes** use one source tree; `ROBOT_ARM_NODE_ID` is set per PlatformIO env (`node_j1` … `node_gripper`) or at runtime via NVS. Per-joint limits and driver types will move into a `joint_profile` table keyed by node ID (not separate binaries).
+
+---
+
+## 5. RS-485 Bus (STM32 ↔ ESP32 nodes)
+
+Full specification: [`distributed_bus_architecture.md`](distributed_bus_architecture.md).
+
+| Layer | Location |
+|:---|:---|
+| Frame codec | `firmware/lib/bus_protocol/` |
+| Master scheduler | `firmware/stm32_core/lib/bus/bus_master.*` |
+| Slave handler | `firmware/joint_node/src/joint_node_app.*` |
+
+The Pi **never** talks on RS-485. It continues to use the binary UART protocol in §3 below; the STM32 translates `SET_JOINTS` into per-node `SET_JOINT_TARGET` bus frames.
