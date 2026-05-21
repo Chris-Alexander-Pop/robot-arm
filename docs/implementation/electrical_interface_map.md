@@ -18,12 +18,14 @@ This document defines the electrical interfaces for the robot arm at the contrac
 | Hall home inputs | In | 5V or open-collector | A3144 sensors | STM32 | One per joint |
 | I2C SCL/SDA | Bi-dir | 3.3V or 5V via pullups | STM32 | Optional AS5600 (J5/J6 only) | Bus only populated if a wrist AS5600 is fitted; TCA9548A only if both are fitted |
 | UART TX/RX | Bi-dir | 3.3V | Raspberry Pi / STM32 | STM32 / Raspberry Pi | High-level command channel |
+| RS-485 A/B | Bi-dir | Differential | STM32 master | ESP32 joint nodes (daisy) | Half-duplex bus; 120 Ω at base + last node |
+| Bus 24V / GND | Out | 24V DC | PSU distribution | Joint node bucks + drivers | Daisy through links; not logic 5V |
 
 ## 2. Driver Logic Map
 
 ### 2a. J1-J4 Closed-Loop Driver Control
 
-The CL57T / CL42T kits ship with a factory motor encoder that the **driver itself** reads. The STM32 only sees STEP/DIR/ENABLE/ALARM — there is **no external AS5600, no I2C bus, and no magnet** for these joints.
+The CL57T / CL42T kits ship with a factory motor encoder that the **driver itself** reads. The **ESP32 joint node** drives STEP/DIR/ENABLE and reads ALARM locally — there is **no external AS5600, no I2C bus, and no magnet** for these joints. The base STM32 does not route per-joint STEP/DIR in the distributed architecture.
 
 | Joint | Motor / Driver | Control Signals | Feedback Signals | Notes |
 |:---|:---|:---|:---|:---|

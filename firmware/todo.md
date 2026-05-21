@@ -1,6 +1,18 @@
 # Firmware Roadmap
 
-This document outlines the low-level real-time control code for the STM32 microcontroller.
+Low-level control: **STM32 bus master** at the base + **ESP32 joint nodes** on RS-485 ([`docs/implementation/distributed_bus_architecture.md`](../docs/implementation/distributed_bus_architecture.md)).
+
+## Distributed bus (scaffold landed)
+
+- [x] Shared `firmware/lib/bus_protocol/` + native tests
+- [x] `firmware/joint_node/` PlatformIO (`node_j1` … `node_gripper`, NVS ID override)
+- [x] `firmware/stm32_core/lib/bus/BusMaster` scaffold
+- [ ] STM32 RS-485 UART + DE driver
+- [ ] ESP32 STEP/DIR + homing FSM + gripper PWM
+- [ ] Joint profile table (driver type, limits per node ID)
+- [ ] Pi protocol: STM32 aggregates bus telemetry into `JOINT_STATE` packets
+
+---
 
 The backlog is organized around the **staged delivery checkpoints A–F** defined in [`docs/Application.md`](../docs/Application.md#3-staged-delivery-plan). Each checkpoint lists the firmware work required to unlock it. Items marked *Phase 1* are needed before any real-arm demo; *Phase 2* items are unlocked once the full 6-axis hardware is built.
 
