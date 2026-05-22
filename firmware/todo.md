@@ -9,6 +9,7 @@ Low-level control: **STM32 bus master** at the base + **ESP32 joint nodes** on R
 - [x] `firmware/stm32_core/lib/bus/BusMaster` scaffold
 - [ ] STM32 RS-485 UART + DE driver
 - [ ] ESP32 STEP/DIR + homing FSM + gripper PWM
+- [ ] Joint node MOTION/SERVICE modes — Wi-Fi off in MOTION ([`joint_node_connectivity.md`](../docs/implementation/joint_node_connectivity.md))
 - [ ] Joint profile table (driver type, limits per node ID)
 - [ ] Pi protocol: STM32 aggregates bus telemetry into `JOINT_STATE` packets
 
@@ -35,7 +36,7 @@ The backlog is organized around the **staged delivery checkpoints A–F** define
 - [ ] **Stepper Core**: Implement precise timer-based pulse generation for CL57T drivers on J1 and J2.
 - [ ] **State Machine**: Implement IDLE / MOVING / HOMING / ERROR states for the 2-DOF subset.
 - [ ] **Driver Validation**: Confirm STM32 reliably drives both NEMA 23 (via CL57T) on J1 and J2 at varying speeds, with the 74HC245 level shifter in the loop.
-- [ ] **Homing Logic**: Draft homing routines using Hall sensors or physical hard-stops for J1 + J2.
+- [ ] **Homing Logic**: ESP32 Hall FSM per joint; STM32 orchestrates J1→J2 on bus `HOME` (see `distributed_bus_architecture.md`).
 
 ---
 

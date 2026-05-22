@@ -7,7 +7,7 @@ its responsibilities, control loop design, communication protocol, and safety lo
 
 ## 1. Overview & Role
 
-The STM32 at the base is the **bus master** and **Pi gateway**. Joint-level real-time work (STEP/DIR, homing, driver ENABLE, local watchdog) runs on **ESP32 modules** co-located with each driver — see [`distributed_bus_architecture.md`](distributed_bus_architecture.md).
+The STM32 at the base is the **bus master** and **Pi gateway**. Joint-level real-time work (STEP/DIR, homing, driver ENABLE, local watchdog) runs on **ESP32 modules** co-located with each driver — see [`distributed_bus_architecture.md`](distributed_bus_architecture.md). Optional **Wi-Fi** on each ESP32 is for config/logs/OTA only and is **off during motion** — see [`joint_node_connectivity.md`](joint_node_connectivity.md).
 
 The STM32 does not perform trajectory planning or inverse kinematics — those remain on the Raspberry Pi. It receives target joint states over UART, issues RS-485 commands to nodes `1..7`, aggregates telemetry, and enforces system-wide safety (serial timeout, e-stop policy).
 
@@ -82,14 +82,28 @@ When no AS5600 is fitted, the wrist joints run pure open-loop from the homed ste
 
 ### 2d. Homing Sequence
 
-On power-up or on receipt of a `HOME` command:
+Homing uses **A3144 Hall effect sensors** — one per joint (J1–J6), mounted on the link with a fixed magnet at mechanical zero. In the **distributed** architecture the Hall line is wired to the **ESP32 joint node** next to that joint's driver, not to the base STM32. See [`distributed_bus_architecture.md`](distributed_bus_architecture.md) § Homing.
 
-1. For each joint (in sequence, from base outward):
-   - Enable motor at low velocity in the negative direction
-   - Poll the **A3144 Hall effect sensor** pin for a falling edge (magnet trigger)
-   - On trigger: immediately halt motor, zero the step counter, set `joint_angle = 0.0`
-2. Move each joint to a known safe **rest pose** (e.g., straight up)
-3. Send `HOMED_OK` packet to Raspberry Pi
+**Division of labor**
+
+| MCU | Homing responsibility |
+|:---|:---|
+| **ESP32 (joint node)** | Autonomous execution: ENABLE, slow STEP/DIR sweep, poll local `HOME` GPIO, stop on Hall trigger, zero local position / step counter |
+| **STM32 (base)** | Orchestration only: on Pi `HOME` (`0x04`), send bus `HOME` (`0x23`) to nodes **J1 → J6** in order, wait for each node to report homed via `JOINT_STATE`, then send `HOMED_OK` to the Pi |
+
+On power-up or when the Pi issues `HOME`:
+
+1. STM32 enters a **HOMING** system state and stops forwarding motion setpoints.
+2. For each joint ID from base outward (per [`../Constraints.md §3e`](../Constraints.md)):
+   - STM32 transmits bus `HOME` to that node.
+   - The addressed ESP32 runs its local homing FSM (Hall-based) without further bus commands until complete.
+   - STM32 polls `JOINT_STATE` until the node reports success (or fault / timeout).
+3. After all six joints are homed, STM32 may command a known **rest pose** via `SET_JOINT_TARGET` (optional policy).
+4. STM32 sends `HOMED_OK` to the Raspberry Pi and returns to normal operation.
+
+The Pi must not stream absolute joint targets until `HOMED_OK` is received ([`../Constraints.md §3e`](../Constraints.md)).
+
+> **Legacy centralized bring-up:** Bench prototypes with all drivers in the control box may still home on STM32 GPIO until joint nodes are deployed; production wiring assumes Hall + STEP/DIR local to each ESP32.
 
 ### 2e. Safety Interlocks
 
@@ -97,7 +111,7 @@ The STM32 monitors the following and will **halt all motors instantly** on any f
 
 | Fault Condition | Detection Method | Action |
 |:---|:---|:---|
-| Overcurrent / Driver Fault | CL57T/CL42T ALARM output pin (interrupt) | Disable all ENABLE lines, send `FAULT` packet to Pi |
+| Overcurrent / Driver Fault | ALARM on each joint node (ESP32); aggregated on bus | STM32 issues bus `ENABLE` off / hold; send `FAULT` packet to Pi |
 | E-Stop Pressed | Physical AC power cut (hardware) | All motor power lost immediately |
 | Joint Limit Exceeded | Software angular limit check in PID loop | Halt joint, clamp setpoint, send `LIMIT` packet |
 | Serial Timeout | Watchdog timer — if no command received in ~500ms | Set all joints to hold (zero velocity) |

@@ -10,7 +10,7 @@ Domain-level firmware for low-level embedded control: a **base STM32 master** an
 | [`joint_node/`](joint_node/) | ESP32 (WROOM-32 class) | Per-joint / gripper slave — **one firmware image**, multiple PlatformIO envs |
 | [`lib/bus_protocol/`](lib/bus_protocol/) | — | Shared bus framing (linked by both projects) |
 
-Architecture: [`docs/implementation/distributed_bus_architecture.md`](../docs/implementation/distributed_bus_architecture.md).
+Architecture: [`docs/implementation/distributed_bus_architecture.md`](../docs/implementation/distributed_bus_architecture.md) · connectivity policy: [`docs/implementation/joint_node_connectivity.md`](../docs/implementation/joint_node_connectivity.md).
 
 ## Onboarding
 

@@ -45,9 +45,8 @@ Include:
 - UART to Raspberry Pi 4
 - RS-485 transceiver to daisy-chained ESP32 joint nodes (see [`distributed_bus_architecture.md`](distributed_bus_architecture.md))
 - I2C bus to TCA9548A (optional wrist AS5600 only)
-- STEP / DIR / ENABLE outputs
-- Fault inputs from driver ALARM pins
-- Home sensor inputs
+- RS-485 to joint-node daisy chain (no per-joint STEP/DIR at base in distributed mode)
+- Pi UART; optional legacy STEP/DIR only for bench bring-up
 
 ### 2d. Motor Driver Sheet
 
@@ -58,15 +57,23 @@ Include one repeated channel block per joint:
 - Motor connector
 - Optional encoder connector for closed-loop channels
 
-### 2e. Sensor Sheet
+### 2e. Joint Node Sheet (per link)
 
-Include:
-- A3144 Hall home sensor headers — **one per joint, J1–J6** (always populated; used for boot-time homing)
-- I2C pullups (4.7k to `5V_LOGIC`) on the controller side
-- Optional shield termination
-- AS5600 + TCA9548A footprints **only as Phase 2 / depopulated parts**, intended for J5 and J6 only. The closed-loop kits on J1–J4 do their own encoder feedback inside the driver, so do not add AS5600 headers for those joints.
+Repeat one hierarchical sheet per joint node PCB (ESP32 + local buck + MAX3485 + driver):
 
-> Default build: no AS5600s, no mux. Only stuff the I2C path if the wrist actually needs absolute feedback.
+- A3144 Hall home sensor header → **ESP32 `HOME` GPIO** (boot homing on the node)
+- STEP / DIR / ENABLE / ALARM to the local driver
+- RS-485 and 24V daisy in/out
+- Optional AS5600 header on **J5/J6 nodes only** (Phase 2)
+
+### 2f. Base Sensor Sheet (optional wrist path)
+
+On the **base** control board only when needed:
+
+- I2C pullups (4.7k to `5V_LOGIC`) for optional wrist AS5600 path (legacy centralized wiring)
+- AS5600 + TCA9548A **depopulated by default**
+
+> Production homing does **not** route `HOME_J1`…`HOME_J6` to the Nucleo. Hall sensors live on joint-node boards. Default build: no AS5600s, no mux at the wrist unless drift forces it.
 
 ## 3. Net Naming Convention
 
@@ -79,7 +86,7 @@ Use a consistent naming scheme so the schematic remains readable:
 - `STM32_DIR_J1` ... `STM32_DIR_J6`
 - `STM32_EN_J1` ... `STM32_EN_J6`
 - `DRV_ALARM_J1` ... `DRV_ALARM_J6`
-- `HOME_J1` ... `HOME_J6`
+- `NODE_HOME` (per joint-node sheet; not `HOME_Jx` at base in distributed mode)
 - `I2C_SCL`, `I2C_SDA`
 - `UART_TX`, `UART_RX`
 

@@ -22,6 +22,8 @@ Logic 5V/3.3V is **buck-converted locally** at each node from `24V_MOTOR` (not p
 
 **Decision:** **RS-485 @ 921600 baud**, master-slave polling from the base **STM32 Nucleo**.
 
+**Also decided:** ESP32 joint nodes may use **Wi-Fi only as an optional service channel** (config, logs, OTA) — **disabled during motion**. See [`joint_node_connectivity.md`](joint_node_connectivity.md).
+
 ---
 
 ## Topology
@@ -72,12 +74,54 @@ Implemented in [`firmware/lib/bus_protocol/`](../../firmware/lib/bus_protocol/).
 | `0x20` | `SET_JOINT_TARGET` | Master → joint | `position_deg` (f32), `velocity_deg_s` (f32) |
 | `0x21` | `JOINT_STATE` | Joint → master | `position_deg`, `velocity_deg_s`, `fault_flags` (u8) |
 | `0x22` | `ENABLE` | Master → node | `u8` 1=on, 0=off |
-| `0x23` | `HOME` | Master → joint | empty |
+| `0x23` | `HOME` | Master → joint | empty — starts **autonomous homing** on that node (see § Homing) |
 | `0x24` | `HEARTBEAT` | Master → broadcast | empty |
 | `0x25` | `SET_GRIPPER` | Master → gripper | `duty` f32 (0=open, 1=closed) |
 | `0x26` | `GRIPPER_STATE` | Gripper → master | `duty`, `fault_flags` |
 
 Pi ↔ STM32 **UART packets** (`protocol/packet_codec`, `0x10`/`0x11`) are unchanged in role: the Pi still talks only to the base MCU; the STM32 translates to bus transactions.
+
+---
+
+## Homing (Hall sensors on joint nodes)
+
+Homing is **not** executed on the base STM32. Each motor joint has an **A3144 Hall effect sensor** and a fixed magnet at the mechanical zero; the sensor connects to the local **ESP32** (`HOME` GPIO in [`firmware/joint_node/src/pinout.h`](../../firmware/joint_node/src/pinout.h)). The gripper node has no Hall homing — it only reports PWM state.
+
+### Trigger and ownership
+
+| Layer | Role |
+|:---|:---|
+| **Pi** | Sends `HOME` (`0x04`) on the Pi↔STM32 UART link when the operator or ROS stack requests homing |
+| **STM32** | **Orchestrates** only: disables motion commands, issues bus `HOME` (`0x23`) to nodes **in order** J1 → J2 → … → J6 (see [`../Constraints.md §3e`](../Constraints.md)), waits for each node to finish, then replies `HOMED_OK` to the Pi |
+| **ESP32 joint node** | **Executes** homing autonomously after a valid addressed `HOME` frame: STEP/DIR sweep, Hall edge detect, stop, zero local step counter / `position_deg` |
+
+Until homing completes system-wide, the STM32 must reject or ignore absolute position commands (policy in [`firmware_architecture.md`](firmware_architecture.md) §2d).
+
+### Per-node homing FSM (ESP32)
+
+When `HOME` (`0x23`) is received for this node's ID:
+
+1. Assert **ENABLE**, set **DIR** toward the configured “seek home” direction, run **STEP** at a low fixed frequency (profile per joint).
+2. Poll **`kHomePin`** (A3144, active-low when the magnet is present).
+3. On trigger: stop pulses immediately, latch **position = 0°**, clear velocity, set an internal **homed** flag.
+4. Respond on the next master poll with `JOINT_STATE` (position near 0, homed indicated in `fault_flags` or equivalent — TBD in firmware).
+
+If **ALARM** asserts or no **HEARTBEAT** within the watchdog window during homing, the node disables the driver and reports fault.
+
+### Sequence (system)
+
+```text
+Pi --HOME--> STM32
+                |
+                +-- HOME node 1 --> [J1 ESP32: sweep + Hall] --> JOINT_STATE (homed)
+                +-- HOME node 2 --> [J2 ESP32: ...]
+                ...
+                +-- HOME node 6 --> [J6 ESP32: ...]
+                |
+Pi <--HOMED_OK-- STM32
+```
+
+Optional post-home move to a safe **rest pose** is a higher-level policy (STM32 streams `SET_JOINT_TARGET` after all nodes report homed).
 
 ---
 
@@ -113,7 +157,7 @@ pio run -e esp32dev -t upload   # bench: then serial `NODE_ID 4`
 
 - **RS-485 transceiver:** e.g. MAX3485; **DE** high during TX, low for RX.
 - **STEP/DIR/ENABLE/ALARM:** ESP32 GPIO → driver (5 V via level shifter where required).
-- **Homing:** A3144 on `HOME` pin (local to node).
+- **Homing:** A3144 on `HOME` pin → ESP32 GPIO only (not routed to the base harness). Magnet placement defines mechanical zero per link.
 - **Gripper node:** Dedicated `5V_SERVO` buck; PWM ~50 Hz on ESP32 LEDC.
 
 Placeholder GPIO map: [`firmware/joint_node/src/pinout.h`](../../firmware/joint_node/src/pinout.h).
@@ -140,3 +184,4 @@ Centralized firmware paths remain buildable during bring-up; enable distributed 
 - [ ] Gripper LEDC mapping
 - [ ] Wireviz + KiCad net names for `RS485_A/B`, daisy connectors
 - [ ] `hw_interface` assumes aggregated joint state from STM32 (no Pi bus exposure)
+- [ ] Optional Wi-Fi service mode per [`joint_node_connectivity.md`](joint_node_connectivity.md)
