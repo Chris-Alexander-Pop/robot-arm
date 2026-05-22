@@ -194,6 +194,22 @@ Writing a custom equivalent would take months and would lack the testing coverag
 
 ---
 
+### 2e. Joint Node Links: RS-485 Control + Optional Wi-Fi Service (Not Wi-Fi Motion)
+
+**Decision**: Each ESP32 joint node uses **RS-485** as the **only** path for motion, homing, enable, and watchdog traffic to/from the STM32 bus master. **Wi-Fi** (ESP32-C3 built-in) is **optional** and used **only** in a dedicated **service mode** for configuration, logs, and OTA — **Wi-Fi is off or logically disabled during motion**.
+
+**Alternatives considered**:
+
+| Option | Pros | Cons |
+|:---|:---|:---|
+| **Wi-Fi / BLE only** (Pi talks to all nodes wirelessly) | No RS-485 harness | Jitter, dropouts, EMI on metal arm, higher idle current, weak safety story |
+| **RS-485 only** (no Wi-Fi) | Simplest RF | OTA and per-node config require USB serial at each link |
+| **RS-485 + optional Wi-Fi service** (chosen) | Reliable control; convenient bench tooling | Two stacks to maintain; must enforce mode separation in firmware |
+
+**Rationale**: The arm already needs a differential bus for deterministic multi-drop control near motor EMI. Wi-Fi is still useful for human-facing tasks (flash firmware, set `NODE_ID`, read logs) without betting homing or MoveIt streaming on a 2.4 GHz link. Full policy: [`implementation/joint_node_connectivity.md`](implementation/joint_node_connectivity.md).
+
+---
+
 ## 4. Decisions Deferred (TBD)
 
 | Decision | Options | Blocking Factor |

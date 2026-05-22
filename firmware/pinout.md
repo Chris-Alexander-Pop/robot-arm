@@ -151,7 +151,8 @@ before hardware wiring is finalized.
 
 - Whether the host link should use UART or USB CDC
 - Whether each motor driver needs its own alarm input or a shared fault line is enough
-- Whether all six homing sensors are read directly or through an I2C GPIO expander
+- **Distributed (production):** Hall homing inputs are on each **ESP32 joint node** (`joint_node/src/pinout.h`), not on the Nucleo — see [`docs/implementation/distributed_bus_architecture.md`](../docs/implementation/distributed_bus_architecture.md)
+- **Centralized (bench only):** whether six homing sensors tie to STM32 GPIO or an I2C GPIO expander
 - Whether the final firmware uses Arduino-style GPIO control or STM32 HAL/CubeMX configuration
 - Whether a board-specific `pinout.h` should be introduced once the final map is settled
 

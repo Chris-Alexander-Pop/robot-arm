@@ -66,18 +66,20 @@ The system is divided into five domains: **Mechanical**, **Firmware**, **Softwar
 
 ---
 
-### 2b. Firmware (STM32 — Low-Level Control)
+### 2b. Firmware (STM32 + ESP32 Joint Nodes)
 
-The STM32 microcontroller runs a **hard-real-time control loop** at ≥ 1 kHz:
-- Receives target joint angles from the Raspberry Pi over UART/USB (`SET_JOINTS` binary packet)
-- Generates precise STEP/DIR pulses to CL57T, CL42T, and TMC2209 motor drivers using hardware timer peripherals
-- Reads position feedback over RS-485 from the closed-loop drivers on J1–J4 (their factory motor encoders are wired to the driver, not the STM32). For J5 / J6, position normally comes from the homed step counter — an AS5600 + (optionally) TCA9548A is a Phase 2 add-on if measured open-loop drift demands it.
-- Executes per-joint **PID control loops** to minimize position error
-- Manages the **homing sequence** (Hall sensor-based) on boot
-- Monitors CL57T/CL42T **ALARM pins** for driver faults and sends `FAULT` packets to the Pi
-- Implements a **serial watchdog**: if no command arrives within ~500ms, all joints enter hold mode
+**Base STM32** (Nucleo-F401RE): bus master and Pi gateway — receives target joint angles over UART/USB (`SET_JOINTS`), polls joint nodes on **RS-485**, aggregates telemetry, enforces system safety (serial timeout, homing orchestration, e-stop policy). It does **not** generate STEP/DIR for joints on the distributed harness.
 
-**Environment**: PlatformIO (C/C++), targeting the STM32 family.
+**ESP32 joint nodes** (one per joint + gripper): co-located with each driver — generate STEP/DIR (or TMC UART), read local **A3144 Hall** homing sensors, run the **autonomous homing FSM** when the STM32 sends bus `HOME`, and disable the driver on bus watchdog timeout.
+
+- Position on J1–J4: closed-loop driver feedback (encoder inside the CL57T/CL42T kit).
+- Position on J5 / J6: homed step counter by default; optional AS5600 + TCA9548A is Phase 2.
+- **Homing**: Hall-based, executed on each ESP32; STM32 sequences J1 → … → J6 and reports `HOMED_OK` to the Pi.
+- **Faults**: ALARM read locally per node; STM32 disables motion via bus and sends `FAULT` to the Pi.
+- **Watchdog**: no valid bus heartbeat within ~500 ms → joint node drops ENABLE.
+- **Wi-Fi (optional)**: config, logs, and OTA in **service mode only** — radio off during motion ([`docs/implementation/joint_node_connectivity.md`](implementation/joint_node_connectivity.md)).
+
+**Environment**: PlatformIO (C++) — [`firmware/stm32_core/`](../firmware/stm32_core/), [`firmware/joint_node/`](../firmware/joint_node/), shared [`firmware/lib/bus_protocol/`](../firmware/lib/bus_protocol/).
 
 **Communication Protocol**: Binary framed packets (`[0xAA 0x55][CMD][PAYLOAD][XOR_CHECKSUM]`) at 115200 baud default.
 

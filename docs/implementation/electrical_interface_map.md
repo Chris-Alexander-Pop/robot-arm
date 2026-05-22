@@ -14,8 +14,8 @@ This document defines the electrical interfaces for the robot arm at the contrac
 | STEP signals | Out | **3.3V MCU** → **5V** | STM32 GPIO | 74HC245 → drivers | MCU pins are **3.3 V logic**; industrial drivers use **5 V** after the **74HC245** |
 | DIR signals | Out | **3.3V MCU** → **5V** | STM32 GPIO | 74HC245 → drivers | Same level shifting as STEP |
 | ENABLE signals | Out | **3.3V MCU** → **5V** | STM32 GPIO | 74HC245 → drivers | Same level shifting as STEP |
-| ALARM / FAULT | In | Driver output | Drivers | STM32 | Active-low fault input assumed |
-| Hall home inputs | In | 5V or open-collector | A3144 sensors | STM32 | One per joint |
+| ALARM / FAULT | In | Driver output | Drivers | **ESP32 joint node** (distributed) or STM32 (bench) | Active-low fault input assumed |
+| Hall home inputs | In | 5V or open-collector | A3144 sensors | **ESP32 joint node** (per link) | One per joint J1–J6; not routed to base STM32 in distributed harness |
 | I2C SCL/SDA | Bi-dir | 3.3V or 5V via pullups | STM32 | Optional AS5600 (J5/J6 only) | Bus only populated if a wrist AS5600 is fitted; TCA9548A only if both are fitted |
 | UART TX/RX | Bi-dir | 3.3V | Raspberry Pi / STM32 | STM32 / Raspberry Pi | High-level command channel |
 | RS-485 A/B | Bi-dir | Differential | STM32 master | ESP32 joint nodes (daisy) | Half-duplex bus; 120 Ω at base + last node |
@@ -51,10 +51,10 @@ A common 6-pin control header can be used for each motor channel:
 
 | Pin | Signal | Function |
 |:---:|:---|:---|
-| 1 | STEP | Step pulse from STM32 |
-| 2 | DIR | Direction control from STM32 |
-| 3 | ENABLE | Driver enable line from STM32 |
-| 4 | ALARM | Fault output back to STM32 |
+| 1 | STEP | Step pulse from **ESP32** joint node (distributed) or STM32 (legacy bench) |
+| 2 | DIR | Direction from joint node / STM32 |
+| 3 | ENABLE | Driver enable from joint node / STM32 |
+| 4 | ALARM | Fault output to joint node / STM32 |
 | 5 | GND | Shared reference |
 | 6 | +5V_REF | Logic reference or pullup source |
 

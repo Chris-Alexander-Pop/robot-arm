@@ -7,7 +7,7 @@ This checklist is for the first time hardware is available. It is intentionally 
 - One PSU
 - One driver channel
 - One motor
-- One home sensor
+- One A3144 home sensor (to the **joint-node** ESP32 in distributed builds, or to the bench STM32 in centralized bring-up)
 - One logic power supply
 - One current-limited bench setup or fused power path
 - Multimeter
@@ -38,7 +38,8 @@ This checklist is for the first time hardware is available. It is intentionally 
 - Verify the motor turns in the expected direction.
 - Verify ENABLE disables motion cleanly.
 - Verify ALARM stops motion and is reported to firmware.
-- Verify the home sensor toggles at the expected mechanical position.
+- Verify the Hall home sensor toggles at the expected mechanical position (read on the joint-node ESP32, or STM32 GPIO on centralized bench).
+- On a joint node: send bus `HOME` from the STM32 master (or a bus test script) and confirm autonomous sweep + zero latch.
 - If using an encoder, verify angle changes match physical rotation.
 
 ## 5. Safety Validation

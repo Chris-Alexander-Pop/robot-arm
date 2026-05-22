@@ -10,7 +10,8 @@ Text-based wiring docs for the 6-DOF arm. YAML in, SVG / HTML / PNG out via [Wir
 | `20_control_signals.yml` | STM32 Nucleo-F401RE pins, 74HC245 level shift, six driver control headers, Pi UART link. |
 | `30_joint_J1_closed_loop.yml` | Detail of one closed-loop joint (CL57T + NEMA 23 + **factory encoder bundled with the kit**). Pattern repeats for J1–J4 (CL42T for J3/J4). |
 | `40_joint_J5_open_loop.yml` | Detail of one open-loop wrist joint (TMC2209 + NEMA 14). AS5600 shown as an optional Phase 2 part — most builds skip it. Same shape for J6. |
-| `50_homing.yml` | Six A3144 Hall HOME sensors only — compact diagram for the harness you always build. |
+| `50_homing.yml` | Six A3144 Hall sensors — each to its **ESP32 joint node** (local homing; STM32 issues bus `HOME`). |
+| `35_bus_harness.yml` | RS-485 + 24V daisy chain through the arm (distributed nodes). |
 | `55_wrist_encoders.yml` | Optional Phase 2 path: STM32 I2C to TCA9548A and two AS5600 boards (J5/J6 only). Omit entirely if you skip wrist encoders. |
 | `60_end_effector.yml` | MG996R gripper servo (mounts inside the gripper body, not the arm), `5V_SERVO` rail, PWM signal across the J6 tool flange, optional FSR. |
 

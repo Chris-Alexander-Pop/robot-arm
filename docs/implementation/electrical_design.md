@@ -65,7 +65,7 @@ The system uses a **three-tier compute architecture**: planning on the Pi, bus m
 
 - The **Raspberry Pi 4** runs ROS 2 in Docker containers. It handles trajectory planning, inverse kinematics, and user-facing interfaces. It does **not** perform any real-time motor control.
 - The **STM32** at the control box polls joint nodes on **RS-485** (921600 baud) and bridges telemetry/commands to the Pi over UART. See [`distributed_bus_architecture.md`](distributed_bus_architecture.md).
-- Each **ESP32 joint node** generates STEP/DIR (or TMC UART) for its local driver, runs homing on the local Hall sensor, and disables the driver on bus watchdog timeout.
+- Each **ESP32 joint node** generates STEP/DIR (or TMC UART) for its local driver, runs homing on the local Hall sensor, and disables the driver on bus watchdog timeout. Optional **Wi-Fi** is for bench service only (off during motion) — [`joint_node_connectivity.md`](joint_node_connectivity.md).
 
 A **legacy centralized** layout (one STM32, all drivers in the box) remains documented in wireviz `20_control_signals.yml` for bring-up; production targets the **4-conductor bus harness** (`hardware/wireviz/35_bus_harness.yml`).
 
@@ -126,9 +126,13 @@ For the open-loop wrist joints, AS5600 is treated as a **Phase 2 / contingency**
 
 ### 4c. A3144 Hall Effect Sensors — Homing
 
-On each joint, an **A3144 Hall effect sensor** and a small neodymium magnet establish the **absolute zero (home) position** at startup:
-- The motor sweeps slowly until the Hall sensor triggers → STM32 records this as the joint's `0°` reference.
-- This eliminates reliance on limit microswitches, which have mechanical wear.
+On each joint (J1–J6), an **A3144 Hall effect sensor** and a small neodymium magnet establish the **absolute zero (home) position** at startup:
+
+- The sensor is wired to the **ESP32 joint node** on that link (`HOME` on the local sensor header), not to the base STM32.
+- After the base STM32 sends a bus **`HOME`** command, the node sweeps slowly until the Hall output triggers, then stops and zeros its local position reference.
+- The base STM32 **orchestrates** homing order (J1 → … → J6); it does not bit-bang STEP/DIR or read Hall pins for remote joints in the distributed harness.
+
+This eliminates reliance on limit microswitches, which have mechanical wear, and keeps homing timing on the same MCU that generates STEP pulses.
 
 ---
 

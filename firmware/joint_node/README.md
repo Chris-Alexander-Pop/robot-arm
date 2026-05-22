@@ -2,6 +2,8 @@
 
 Distributed motor nodes: one small **ESP32** module per joint (and one for the gripper), co-located with the stepper driver. Nodes communicate on a **daisy-chained RS-485 bus** (2 twisted pairs for data + 24V/GND for power through the arm).
 
+**Connectivity policy:** RS-485 is the **control plane** (motion, homing, watchdog). **Wi-Fi** is an optional **service plane** (config, logs, OTA) and must be **disabled during motion**. See [`../../docs/implementation/joint_node_connectivity.md`](../../docs/implementation/joint_node_connectivity.md).
+
 ## One firmware image
 
 All nodes build from the **same source tree**. Identity is selected by:
@@ -32,6 +34,23 @@ See [`src/pinout.h`](src/pinout.h). Revise when joint carrier PCBs are laid out.
 
 Shared library: [`../lib/bus_protocol/`](../lib/bus_protocol/). Full specification: [`../../docs/implementation/distributed_bus_architecture.md`](../../docs/implementation/distributed_bus_architecture.md).
 
+## Homing (Hall sensor)
+
+Each motor joint (IDs 1–6) has an **A3144** on `kHomePin` (see [`src/pinout.h`](src/pinout.h)). When the base STM32 sends bus command **`HOME`** (`0x23`) to this node's address, the firmware must:
+
+1. Enable the local driver and STEP toward the configured home direction at low speed.
+2. Stop on Hall trigger (active-low), zero position / step count, set homed state.
+3. Report completion in the next `JOINT_STATE` response to the master poll.
+
+The STM32 sequences homing **J1 → J6**; the Pi only sees `HOME` / `HOMED_OK` on the UART link. The gripper node does not use Hall homing.
+
+## Wi-Fi service mode (planned)
+
+Not implemented yet. When added:
+
+- **MOTION** — Wi-Fi off; only RS-485 + local STEP/DIR.
+- **SERVICE** — Wi-Fi on for NVS config, logs, OTA; driver disabled by default; **no** motion over Wi-Fi.
+
 ## Status
 
-Scaffold only: bus framing, RS-485 port, enable/watchdog, and command stubs. STEP/DIR motion, homing, and servo PWM are TODO.
+Scaffold only: bus framing, RS-485 port, enable/watchdog, and command stubs. STEP/DIR motion, **Hall homing FSM**, servo PWM, and **Wi-Fi service mode** are TODO.
