@@ -108,6 +108,47 @@ cd firmware/scripts/hardware_tests
 
 ---
 
+### `run_rs485_arduino.sh` — Arduino RS-485 echo (PlatformIO)
+
+**What it does:** Builds and flashes `rs485_arduino/` on an Arduino Uno/Nano/Mega; opens serial monitor at 115200. The sketch echoes bus traffic for the Nucleo ping test.
+
+**Usage:**
+```sh
+./run_rs485_arduino.sh        # default: uno
+./run_rs485_arduino.sh nano
+```
+
+**Project:** `firmware/scripts/hardware_tests/rs485_arduino/` (`pio run -e uno -t upload`).
+
+---
+
+### `run_rs485.sh` — RS-485 transceiver (MAX485 / MAX3485)
+
+**Arduino + Nucleo pair:** flash Arduino first with [`run_rs485_arduino.sh`](run_rs485_arduino.sh) (PlatformIO), then run this script. Step-by-step: [`rs485_arduino/QUICKSTART.md`](rs485_arduino/QUICKSTART.md).
+
+**What it does:**
+Once per second, drives the RS-485 bus in transmit mode, sends `RS485 PING`, then
+listens for any bytes echoed by another node on the bus. Progress is printed on the
+USB serial monitor (USART2 / ST-Link), not on the RS-485 line.
+
+**Required hardware:**
+- Nucleo-F401RE + ST-Link USB
+- 3.3 V MAX485-style TTL module wired to `PC10` (TX), `PC11` (RX), `PA4` (DE)
+- Bus partner on `A`/`B`: second MAX485 module — **Arduino** echo sketch
+  ([`rs485_arduino/`](rs485_arduino/README.md)) **or** USB-UART adapter on a PC
+- Common ground between all modules
+- 120 Ω between `A` and `B` at each physical end of the bus (optional on a short bench)
+
+**Run:**
+```sh
+cd firmware/scripts/hardware_tests
+./run_rs485.sh
+```
+
+**Passing result:** `TX` lines every second; `RX` lines when a partner echoes or replies.
+
+---
+
 ### `run_comms.sh` — Serial protocol loopback
 
 **What it does:**
@@ -169,6 +210,10 @@ PLATFORMIO_BUILD_FLAGS="-DHWTEST_STEPPER_ALL_AXES" \
 
 # Comms loopback
 PLATFORMIO_BUILD_FLAGS="-DHWTEST_COMMS" \
+  pio run -e nucleo_f401re_hwtest -t upload
+
+# RS-485 transceiver test
+PLATFORMIO_BUILD_FLAGS="-DHWTEST_RS485" \
   pio run -e nucleo_f401re_hwtest -t upload
 
 # Heartbeat watchdog (no separate script — flash manually and watch monitor)
