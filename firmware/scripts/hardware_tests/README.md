@@ -149,6 +149,32 @@ cd firmware/scripts/hardware_tests
 
 ---
 
+### `run_cl57t_bench_arduino.sh` — CL57T speed sweep (Arduino)
+
+**What it does:** Same as Nucleo `run_cl57t_bench.sh` — creep, then speeds 1–12 **forward then reverse** (2 s each). Type **`GO`** to start.
+
+**Wiring:** [`cl57t_bench_arduino/README.md`](cl57t_bench_arduino/README.md) — **D2** STEP, **D3** DIR, **D4** ENA.
+
+```sh
+./run_cl57t_bench_arduino.sh uno
+```
+
+---
+
+### `run_homing_arduino.sh` — Homing sequence (CL57T + Hall on Arduino)
+
+**What it does:** Enables CL57T, steps until A3144 Hall triggers, backs off, prints `HOMED OK`. Same idea as production joint-node homing.
+
+**Wiring:** [`homing_arduino/README.md`](homing_arduino/README.md) — STEP/DIR/ENA to CL57T, Hall on **A0**, encoder stays on driver **P2** only.
+
+**Run:** flash then type `HOME` at 115200:
+
+```sh
+./run_homing_arduino.sh uno
+```
+
+---
+
 ### `run_hall_arduino.sh` — Hall sensor on Arduino (A3144, A0)
 
 **What it does:** Reads a digital Hall switch on **A0** (5V, pull-up). Prints `MAGNET NEAR (HOME)` when **LOW**.
