@@ -1,15 +1,9 @@
-const int hallPin = A0;
+// Deprecated — use PlatformIO hwtest on the Nucleo instead:
+//
+//   cd firmware/scripts/hardware_tests
+//   ./run_hall.sh
+//
+// See README.md in this folder for wiring (A5 / PC0, digital A3144).
 
-void setup() {
-  Serial.begin(9600);
-}
-
-void loop() {
-
-  int sensorValue = analogRead(hallPin);
-
-  Serial.print("Hall Sensor Value: ");
-  Serial.println(sensorValue);
-
-  delay(1000);
-}
+void setup() {}
+void loop() {}
