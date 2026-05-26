@@ -57,6 +57,8 @@ You only have **one F–F**? Use it for the **long** hop (see below). Everything
 
 **Do not use morpho (CN10/CN12) pins** unless you have morpho dupont — use **D8, D2, A2, 3.3V, GND** on the side Arduino connector only.
 
+**Do not remove the CN2 jumpers** on the Nucleo (middle of the board). They connect ST-Link to the STM32 for flash/debug. If CN2 is off, `pio upload` fails with `unable to connect to the target` even though USB and serial still work.
+
 `D2` is digital pin 2 on the silkscreen (not “D02”). `A2` is analog pin 2.
 
 ### Bus between the two MAX485 boards (minimum 3 connections)

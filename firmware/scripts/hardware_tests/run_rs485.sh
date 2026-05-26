@@ -24,6 +24,11 @@ cd "${PROJECT_DIR}"
 echo "Before flashing: wire bus, common GND, run ./run_rs485_arduino.sh (PlatformIO)."
 echo ""
 
+if ! "${SCRIPT_DIR}/check_nucleo_stlink.sh"; then
+  exit 1
+fi
+echo ""
+
 echo "[1/2] Building and flashing Nucleo..."
 PLATFORMIO_BUILD_FLAGS="-DHWTEST_RS485" \
   pio run -e nucleo_f401re_hwtest -t upload

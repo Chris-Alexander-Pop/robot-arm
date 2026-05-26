@@ -54,4 +54,8 @@ constexpr int kRs485TxPin = PA9;   // Nucleo D8
 constexpr int kRs485RxPin = PA10;  // Nucleo D2
 constexpr int kRs485DePin = PA4;   // Nucleo A2
 
+// --- Hall homing sensor bench test (A3144-style, active-low) ---
+// Production homing inputs live on ESP32 joint nodes; this pin is for Nucleo bring-up only.
+constexpr int kHallBenchPin = PC0;  // Nucleo Arduino header A5
+
 #endif  // ARDUINO

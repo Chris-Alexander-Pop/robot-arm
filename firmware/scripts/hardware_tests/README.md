@@ -149,6 +149,38 @@ cd firmware/scripts/hardware_tests
 
 ---
 
+### `run_hall_arduino.sh` — Hall sensor on Arduino (A3144, A0)
+
+**What it does:** Reads a digital Hall switch on **A0** (5V, pull-up). Prints `MAGNET NEAR (HOME)` when **LOW**.
+
+**Wiring:** [`hall_arduino/README.md`](hall_arduino/README.md)
+
+**Run:**
+```sh
+./run_hall_arduino.sh uno
+```
+
+---
+
+### `run_hall.sh` — Hall sensor on Nucleo (optional)
+
+Same test on STM32 — only if ST-Link upload works.
+
+**What it does:**
+Reads a **digital** Hall switch on Nucleo **A5 (PC0)** with internal pull-up. Prints `MAGNET NEAR (HOME)` when the output is **LOW** (same logic as production joint-node homing).
+
+**Required hardware:**
+- A3144 module (or compatible digital Hall board)
+- Small magnet
+- Wiring: see [`hall-effect-sensor-testing/README.md`](hall-effect-sensor-testing/README.md)
+
+**Run:**
+```sh
+./run_hall.sh
+```
+
+---
+
 ### `run_comms.sh` — Serial protocol loopback
 
 **What it does:**
@@ -208,6 +240,10 @@ PLATFORMIO_BUILD_FLAGS="-DHWTEST_STEPPER_SINGLE" \
 PLATFORMIO_BUILD_FLAGS="-DHWTEST_STEPPER_ALL_AXES" \
   pio run -e nucleo_f401re_hwtest -t upload
 
+# Hall sensor
+PLATFORMIO_BUILD_FLAGS="-DHWTEST_HALL" \
+  pio run -e nucleo_f401re_hwtest -t upload
+
 # Comms loopback
 PLATFORMIO_BUILD_FLAGS="-DHWTEST_COMMS" \
   pio run -e nucleo_f401re_hwtest -t upload
@@ -248,8 +284,12 @@ There is no dedicated shell script for this test because it requires interaction
 
 ## Troubleshooting
 
+Run **`./check_nucleo_stlink.sh`** before any Nucleo upload. It prints whether SWD can reach the MCU.
+
 | Symptom | Likely cause |
 |---|---|
+| `init mode failed` / `chipid: 0x000` / `NRST is not connected` | **CN2 jumpers off** (most common), wires on **CN4**, or ST-Link section cut off the board — see `check_nucleo_stlink.sh` |
+| mbed `FAIL.TXT`: failed to reset/halt target | Same as above — ST-Link cannot reach the STM32 |
 | Upload fails with "no device found" | ST-Link not connected or driver missing |
 | Motor doesn't move | Check STEP/DIR wiring, driver power, ALM LED |
 | CL57T ALM LED solid red | Overcurrent or encoder fault — power-cycle driver |
