@@ -8,6 +8,7 @@
 //   -DHWTEST_STEPPER_ALL_AXES  — all 6 axes sequential jog
 //   -DHWTEST_COMMS             — serial protocol loopback test
 //   -DHWTEST_HEARTBEAT         — heartbeat watchdog timeout test
+//   -DHWTEST_RS485             — RS-485 transceiver ping (USART3 + DE)
 //
 // Each module defines its own setup() / loop() body, prefixed with its
 // hwtest name. This file calls the appropriate pair via Arduino setup() and
@@ -26,12 +27,14 @@
 #include "../test/hardware/hwtest_stepper_all_axes.cpp"
 #include "../test/hardware/hwtest_comms.cpp"
 #include "../test/hardware/hwtest_heartbeat.cpp"
+#include "../test/hardware/hwtest_rs485.cpp"
 
 #if !defined(HWTEST_CL57T_BENCH) && \
     !defined(HWTEST_STEPPER_SINGLE) && \
     !defined(HWTEST_STEPPER_ALL_AXES) && \
     !defined(HWTEST_COMMS) && \
-    !defined(HWTEST_HEARTBEAT)
+    !defined(HWTEST_HEARTBEAT) && \
+    !defined(HWTEST_RS485)
 #warning "No HWTEST_* flag defined — flash this env with e.g. -DHWTEST_CL57T_BENCH"
 #endif
 
@@ -46,6 +49,8 @@ void setup() {
   hwtest_comms_setup();
 #elif defined(HWTEST_HEARTBEAT)
   hwtest_heartbeat_setup();
+#elif defined(HWTEST_RS485)
+  hwtest_rs485_setup();
 #else
   Serial.begin(115200);
   while (!Serial && millis() < 3000UL) { delay(10); }
@@ -55,6 +60,7 @@ void setup() {
   Serial.println("  -DHWTEST_STEPPER_ALL_AXES");
   Serial.println("  -DHWTEST_COMMS");
   Serial.println("  -DHWTEST_HEARTBEAT");
+  Serial.println("  -DHWTEST_RS485");
 #endif
 }
 
@@ -69,6 +75,8 @@ void loop() {
   hwtest_comms_loop();
 #elif defined(HWTEST_HEARTBEAT)
   hwtest_heartbeat_loop();
+#elif defined(HWTEST_RS485)
+  hwtest_rs485_loop();
 #else
   delay(1000);
 #endif

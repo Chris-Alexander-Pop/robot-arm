@@ -46,4 +46,12 @@ constexpr int kJ6StepPin = PC8;   constexpr int kJ6DirPin = PC9;
 constexpr int kHostUartTxPin = PA9;
 constexpr int kHostUartRxPin = PA10;
 
+// --- RS-485 bus (MAX485 / MAX3485 on USART1) ---
+// Pins are on the Nucleo *Arduino* header (male pins) for M-F dupont wiring.
+// USB Serial (ST-Link VCP) stays on USART2 (PA2/PA3) for monitor + flash.
+// DE high = driver enabled (transmit); low = receive.
+constexpr int kRs485TxPin = PA9;   // Nucleo D8
+constexpr int kRs485RxPin = PA10;  // Nucleo D2
+constexpr int kRs485DePin = PA4;   // Nucleo A2
+
 #endif  // ARDUINO

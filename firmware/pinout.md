@@ -175,12 +175,13 @@ That approach fits the STM32F401RE resource limits without overcommitting the de
 
 When using ESP32 joint nodes ([`docs/implementation/distributed_bus_architecture.md`](../docs/implementation/distributed_bus_architecture.md)), the Nucleo acts as the **RS-485 master** only — it no longer bit-bangs STEP/DIR for remote joints.
 
-| Function | Suggested pin | Notes |
-|:---|:---|:---|
-| `RS485_TX` | TBD (`USARTx_TX`) | Through MAX3485 |
-| `RS485_RX` | TBD (`USARTx_RX`) | |
-| `RS485_DE` | TBD (GPIO) | HIGH = transmit enabled |
-| Pi `UART_TX/RX` | `PA9` / `PA10` | Unchanged host link |
+| Function | Pin | Nucleo label | Notes |
+|:---|:---|:---|:---|
+| `RS485_TX` | `PA9` (`USART1_TX`) | **D8** | To MAX485 `DI` — Arduino header (M-F dupont) |
+| `RS485_RX` | `PA10` (`USART1_RX`) | **D2** | From MAX485 `RO` |
+| `RS485_DE` | `PA4` | **A2** | HIGH = transmit; tie `/RE` to `DE` if separate |
+| USB debug `Serial` | `PA2` / `PA3` (`USART2`) | — | ST-Link VCP — do not use for RS-485 |
+| Pi `UART_TX/RX` | (future) | — | Production may move host UART off `PA9`/`PA10` |
 
 **Termination:** 120 Ω at the Nucleo transceiver (bus end). Second terminator at the gripper node.
 
