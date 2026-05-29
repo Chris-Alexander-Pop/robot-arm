@@ -23,13 +23,38 @@ Architecture: [`docs/implementation/distributed_bus_architecture.md`](../docs/im
 Linux/macOS:
 
 ```bash
-./firmware/scripts/build.sh              # STM32 + all joint_node envs
-./firmware/scripts/build.sh stm32        # STM32 only
+./firmware/scripts/build.sh              # STM32 + joint_node default env
+./firmware/scripts/build.sh stm32        # STM32 only (compile, no flash)
 ./firmware/scripts/build.sh joint        # joint_node default env only
 ./firmware/scripts/build.sh joint-all    # all node_j* + node_gripper envs
 ```
 
 Windows: `firmware/scripts/build.ps1` with the same optional arguments.
+
+## Flash STM32 (Nucleo-F401RE)
+
+Main application firmware lives in [`stm32_core/`](stm32_core/) (`src/main.cpp`). PlatformIO board/env: **`nucleo_f401re`** in [`stm32_core/platformio.ini`](stm32_core/platformio.ini). Upload uses onboard **ST-Link** (`upload_protocol = stlink`).
+
+```bash
+./firmware/scripts/upload_stm32.sh           # build + flash
+./firmware/scripts/upload_stm32.sh monitor   # flash, then serial monitor @ 115200
+```
+
+Manual equivalent:
+
+```bash
+cd firmware/stm32_core
+pio run -e nucleo_f401re -t upload
+pio device monitor -e nucleo_f401re
+```
+
+If upload fails with `unable to connect` / `chipid 0x000`, run
+[`firmware/scripts/hardware_tests/check_nucleo_stlink.sh`](scripts/hardware_tests/check_nucleo_stlink.sh)
+(CN2 jumpers must be ON).
+
+**Hardware tests** (RS-485, CL57T bench, Hall, etc.) are separate images built from
+`hardware_test_main.cpp` under env **`nucleo_f401re_hwtest`** — see
+[`scripts/hardware_tests/README.md`](scripts/hardware_tests/README.md).
 
 ## Test
 
