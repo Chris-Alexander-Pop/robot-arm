@@ -259,8 +259,10 @@ def _find_pico_port() -> "str | None":
 def main() -> None:
     parser = argparse.ArgumentParser(description="RS-485 multi-node bench log hub")
     parser.add_argument("--pico-port", default=None,
-                        help="Serial port for the Pico master (e.g. /dev/ttyACM0). "
+                        help="Serial port for the Pico master (e.g. /dev/ttyACM1). "
                              "Auto-detected if omitted.")
+    parser.add_argument("--no-pico", action="store_true",
+                        help="Do not open any serial port (UDP logs only)")
     parser.add_argument("--udp-port", type=int, default=9000,
                         help="UDP port to listen on for node logs (default: 9000)")
     parser.add_argument("--no-colour", action="store_true",
@@ -276,7 +278,7 @@ def main() -> None:
 
     # ── Serial ────────────────────────────────────────────────────────────────
     ser = None
-    pico_port = args.pico_port or _find_pico_port()
+    pico_port = None if args.no_pico else (args.pico_port or _find_pico_port())
     if pico_port:
         try:
             import serial as pyserial

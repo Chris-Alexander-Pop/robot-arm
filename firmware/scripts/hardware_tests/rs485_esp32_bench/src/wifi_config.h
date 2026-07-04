@@ -13,7 +13,7 @@
 #endif
 
 #ifndef WIFI_PASS
-#define WIFI_PASS "Pedepsit1!"
+#define WIFI_PASS "TestPass1"
 #endif
 
 // PC / host IP where rs485_log_hub.py is listening.

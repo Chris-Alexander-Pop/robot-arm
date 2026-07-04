@@ -153,17 +153,12 @@ static void HandleUsbCommand(const char* cmd) {
 // ── Arduino entry points ──────────────────────────────────────────────────────
 
 void setup() {
-    // USB CDC (Serial) for local debug
     Serial.begin(115200);
-    // On ESP32-C3 native USB-CDC, wait for the host to open the port.
-    // A brief extra settle delay prevents the boot banner from printing
-    // before the USB connection is fully established in the host OS.
-    for (uint32_t t = millis(); !Serial && millis() - t < 5000U;) {
-        delay(10);
-    }
-    delay(200);  // settle: USB enumeration can race with first Serial.print
+    delay(500);
 
     g_node_id = ResolveNodeId();
+
+    Serial.println(F("[boot] starting RS-485 bench slave"));
 
     // RS-485 on Serial1 (UART1)
     pinMode(kRs485DePin, OUTPUT);
@@ -171,8 +166,11 @@ void setup() {
     Serial1.begin(RS485_BENCH_BAUD, SERIAL_8N1, kRs485RxPin, kRs485TxPin);
     DrainRx();
 
-    pinMode(kStatusLedPin, OUTPUT);
-    digitalWrite(kStatusLedPin, LOW);
+    // Optional status LED (disabled when kStatusLedPin == -1)
+    if (kStatusLedPin >= 0) {
+        pinMode(kStatusLedPin, OUTPUT);
+        digitalWrite(kStatusLedPin, LOW);
+    }
 
     Serial.println();
     Serial.println(F("========================================="));
@@ -264,8 +262,11 @@ void loop() {
             (unsigned long)g_bad,
             (unsigned long)g_ignored);
 
-    // Blink LED
-    digitalWrite(kStatusLedPin, HIGH);
+    if (kStatusLedPin >= 0) {
+        digitalWrite(kStatusLedPin, HIGH);
+    }
     SendAck();
-    digitalWrite(kStatusLedPin, LOW);
+    if (kStatusLedPin >= 0) {
+        digitalWrite(kStatusLedPin, LOW);
+    }
 }
