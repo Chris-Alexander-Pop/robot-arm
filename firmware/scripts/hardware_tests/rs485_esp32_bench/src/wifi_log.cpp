@@ -36,11 +36,24 @@ bool WifiLogBegin(uint8_t node_id) {
     g_node_id = node_id;
     g_udp_ready = false;
 
+    // Print disconnect reason for diagnostics.
+    WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
+        Serial.print(F("[wifi] disconnect reason="));
+        Serial.println(info.wifi_sta_disconnected.reason);
+    }, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
     WiFi.persistent(false);  // skip NVS read/write entirely
+    WiFi.disconnect(true);   // clear any residual state
+    delay(200);
     WiFi.mode(WIFI_STA);
-    delay(100);
+    delay(200);
     WiFi.setSleep(WIFI_PS_NONE);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
+    // ESP32-C3 SuperMini: the onboard LDO (250 mA peak) cannot sustain the
+    // default ~19.5 dBm TX burst during WPA2 4-way handshake, causing the
+    // voltage to sag and the auth to time out (WIFI_REASON_AUTH_EXPIRE / 2).
+    // Capping TX power to 8.5 dBm keeps current within regulator limits.
+    WiFi.setTxPower(WIFI_POWER_8_5dBm);
 
     Serial.print(F("[wifi] connecting to " WIFI_SSID " "));
     const uint32_t deadline = millis() + 30000U;
@@ -51,9 +64,12 @@ bool WifiLogBegin(uint8_t node_id) {
     Serial.println();
 
     if (WiFi.status() != WL_CONNECTED) {
-        // Retry once with a fresh begin
+        // Retry once with a clean reconnect
         Serial.print(F("[wifi] retry... "));
+        WiFi.disconnect();
+        delay(500);
         WiFi.begin(WIFI_SSID, WIFI_PASS);
+        WiFi.setTxPower(WIFI_POWER_8_5dBm);
         const uint32_t deadline2 = millis() + 20000U;
         while (WiFi.status() != WL_CONNECTED && millis() < deadline2) {
             delay(500);
