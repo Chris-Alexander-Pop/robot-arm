@@ -13,8 +13,8 @@ constexpr int kRs485TxPin = 4;   // DI on module
 constexpr int kRs485RxPin = 5;   // RO on module
 constexpr int kRs485DePin = 6;   // DE (HIGH = transmit)
 
-// Status LED — GPIO 8 is the RGB LED on the official devkitm-1.
-// On other C3 boards it may be GPIO 2; adjust if yours differs.
-constexpr int kStatusLedPin = 8;
+// Status LED — set to -1 to disable. GPIO 8 is WS2812 on devkitm-1 and may
+// conflict on bare C3 carrier boards; use 2 or -1 if boot hangs.
+constexpr int kStatusLedPin = -1;
 
 }  // namespace esp32c3_slave

@@ -36,11 +36,14 @@ bool WifiLogBegin(uint8_t node_id) {
     g_node_id = node_id;
     g_udp_ready = false;
 
+    WiFi.persistent(false);  // skip NVS read/write entirely
     WiFi.mode(WIFI_STA);
+    delay(100);
+    WiFi.setSleep(WIFI_PS_NONE);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
 
     Serial.print(F("[wifi] connecting to " WIFI_SSID " "));
-    const uint32_t deadline = millis() + 15000U;
+    const uint32_t deadline = millis() + 30000U;
     while (WiFi.status() != WL_CONNECTED && millis() < deadline) {
         delay(500);
         Serial.print('.');
@@ -48,7 +51,21 @@ bool WifiLogBegin(uint8_t node_id) {
     Serial.println();
 
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println(F("[wifi] failed — logs via USB only"));
+        // Retry once with a fresh begin
+        Serial.print(F("[wifi] retry... "));
+        WiFi.begin(WIFI_SSID, WIFI_PASS);
+        const uint32_t deadline2 = millis() + 20000U;
+        while (WiFi.status() != WL_CONNECTED && millis() < deadline2) {
+            delay(500);
+            Serial.print('.');
+        }
+        Serial.println();
+    }
+
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.print(F("[wifi] failed status="));
+        Serial.print(WiFi.status());
+        Serial.println(F(" — logs via USB only"));
         return false;
     }
 
