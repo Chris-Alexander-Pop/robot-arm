@@ -53,12 +53,11 @@ static uint32_t g_ignored   = 0;
 // ── RS-485 helpers (Serial1 on ESP32-C3) ────────────────────────────────────
 
 static void SetTransmitMode(bool tx) {
-    digitalWrite(kRs485DePin, tx ? HIGH : LOW);
-    if (tx) {
-        delayMicroseconds(RS485_BENCH_DE_SETTLE_US);
-    } else {
-        delayMicroseconds(RS485_BENCH_DE_SETTLE_US);
+    if (kRs485DePin < 0 || kRs485RxOnly) {
+        return;  // DE hard-wired for RX-only
     }
+    digitalWrite(kRs485DePin, tx ? HIGH : LOW);
+    delayMicroseconds(RS485_BENCH_DE_SETTLE_US);
 }
 
 static void DrainRx() {
@@ -93,6 +92,9 @@ static size_t ReadFrame(uint8_t* out, size_t capacity) {
 }
 
 static void SendAck() {
+    if (kRs485RxOnly || kRs485DePin < 0) {
+        return;  // one-way bench: log only, no bus reply
+    }
     char frame[RS485_BENCH_FRAME_MAX_LEN];
     const size_t len = BuildAckPingFrame(frame, sizeof(frame), g_node_id);
     if (len == 0) return;
@@ -161,8 +163,10 @@ void setup() {
     Serial.println(F("[boot] starting RS-485 bench slave"));
 
     // RS-485 on Serial1 (UART1)
-    pinMode(kRs485DePin, OUTPUT);
-    SetTransmitMode(false);
+    if (kRs485DePin >= 0) {
+        pinMode(kRs485DePin, OUTPUT);
+        SetTransmitMode(false);
+    }
     Serial1.begin(RS485_BENCH_BAUD, SERIAL_8N1, kRs485RxPin, kRs485TxPin);
     DrainRx();
 
@@ -182,7 +186,21 @@ void setup() {
     }
     Serial.print(F("  Bus baud : "));
     Serial.println(RS485_BENCH_BAUD);
-    Serial.println(F("  UART1: GPIO4=TX, GPIO5=RX, GPIO6=DE"));
+    Serial.print(F("  UART1: GPIO"));
+    Serial.print(kRs485TxPin);
+    Serial.print(F("=TX, GPIO"));
+    Serial.print(kRs485RxPin);
+    Serial.print(F("=RX"));
+    if (kRs485DePin >= 0) {
+        Serial.print(F(", GPIO"));
+        Serial.print(kRs485DePin);
+        Serial.println(F("=DE"));
+    } else {
+        Serial.println(F(", DE=hardwired GND (RX-only)"));
+    }
+    if (kRs485RxOnly) {
+        Serial.println(F("  Mode: RX-only — logs via WiFi/USB, no bus ACK"));
+    }
     Serial.println(F("  Type 'help' for commands."));
     Serial.println();
 

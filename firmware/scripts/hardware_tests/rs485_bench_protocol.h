@@ -8,12 +8,18 @@
 //
 //   <dst>: '1'..'5'  = single node
 //          '*'       = broadcast (all nodes respond)
-//   <cmd>: "PING"    = basic reachability ping
-//          "ECHO <text>"  = echo payload (corruption test)
+//   <cmd>: "PING"                      = basic reachability ping
+//          "ECHO <text>"               = echo payload (corruption test)
+//          "MOVE <pos_deg> <vel_dps>"  = dummy SET_JOINT_TARGET (ASCII stand-in)
+//          "ENABLE <0|1>"              = dummy ENABLE
+//          "HOME"                      = dummy HOME
+//          "HB"                        = dummy HEARTBEAT (usually broadcast)
 //
 // Examples:
-//   "@2 PING\r\n"       -> only node 2 handles; replies "@2 ACK PING\r\n"
-//   "@* PING\r\n"       -> all nodes reply in sequence (master collects)
+//   "@2 PING\r\n"              -> only node 2 handles; replies "@2 ACK PING\r\n"
+//   "@* PING\r\n"              -> all nodes reply in sequence (master collects)
+//   "@3 MOVE 45.00 30.00\r\n"  -> node 3 logs MOVE over WiFi (RX-only bench)
+//   "@* HB\r\n"                -> all nodes log heartbeat
 //
 // Used by: rs485_pico/ (Pico master) and rs485_esp32_bench/ (ESP32-C3 slaves).
 // Max frame length fits in RS485_BENCH_FRAME_MAX_LEN bytes.
