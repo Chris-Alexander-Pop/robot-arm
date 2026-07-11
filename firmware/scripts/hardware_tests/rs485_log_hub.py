@@ -14,9 +14,14 @@ Interactive commands (type at the prompt):
     1 .. 5          send "ping <n>" to the Pico (targeted ping)
     all             broadcast ping (@*)
     ping <n|all>    explicit form of the above
+    run all <steps> <dir> <hz>   broadcast motor RUN
+    run <n> <steps> <dir> <hz>    unicast motor RUN
+    jog all <dir> <hz>            broadcast motor JOG
+    bench           scripted parallel motor test (motor bench Pico firmware)
+    wave [all|1-4] [steps] [hz]  continuous fwd/rev (default all 1000 @ 500; dir 1=fwd 0=rev)
     auto [ms]       start auto-sweep (default 2000 ms between pings)
-    stop            stop auto-sweep
-    status          print per-node counters
+    stop            motor STOP + stop auto-sweep
+    status          print per-node counters + motor state
     help            print this list
     q / quit        exit
 
@@ -64,10 +69,9 @@ def _ts() -> str:
     return time.strftime("%H:%M:%S")
 
 def _print_log(prefix: str, msg: str, colour: str = _RESET) -> None:
-    print(f"\r{colour}{_BOLD}{_ts()} {prefix}{_RESET} {msg}",
-          flush=True)
-    # Re-print the prompt on the same terminal line
-    print("> ", end="", flush=True)
+    # One line per event; do not re-print the input prompt here (that caused
+    # "> > > ..." spam when UDP/Pico traffic was high).
+    print(f"{colour}{_BOLD}{_ts()} {prefix}{_RESET} {msg}", flush=True)
 
 # ── Per-node statistics ───────────────────────────────────────────────────────
 
@@ -80,6 +84,8 @@ class NodeStats:
         self.bad       = 0
         self.ignored   = 0
         self.boot_time = 0.0
+        self.motor_state = "idle"
+        self.motor_detail = ""
 
     def update_from_log(self, tag: str, msg: str) -> None:
         self.seen      = True
@@ -93,6 +99,16 @@ class NodeStats:
         if m_ign: self.ignored = int(m_ign.group(1))
         if tag == "BOOT":
             self.boot_time = time.time()
+        if tag == "MOTOR":
+            if msg.startswith("RUN start") or msg.startswith("JOG start"):
+                self.motor_state = "running"
+                self.motor_detail = msg
+            elif msg.startswith("done"):
+                self.motor_state = "done"
+                self.motor_detail = msg
+            elif msg.startswith("STOP"):
+                self.motor_state = "stopped"
+                self.motor_detail = msg
 
 _stats: dict[int, NodeStats] = {i: NodeStats(i) for i in range(1, 6)}
 
@@ -110,17 +126,22 @@ def _udp_listener(udp_port: int, out_queue: "queue.Queue[tuple[int,str,str]]") -
         except socket.timeout:
             continue
         line = data.decode("utf-8", errors="replace").strip()
-        # Expected format: J<id>|<tag>|<msg>
-        parts = line.split("|", 2)
-        if len(parts) < 3 or not parts[0].startswith("J"):
-            continue
-        try:
-            node_id = int(parts[0][1:])
-        except ValueError:
-            continue
-        tag = parts[1]
-        msg = parts[2] if len(parts) > 2 else ""
-        out_queue.put((node_id, tag, msg))
+        # Nodes may batch several log lines in one datagram (newline-separated).
+        for entry in line.splitlines():
+            entry = entry.strip()
+            if not entry:
+                continue
+            # Expected format: J<id>|<tag>|<msg>
+            parts = entry.split("|", 2)
+            if len(parts) < 3 or not parts[0].startswith("J"):
+                continue
+            try:
+                node_id = int(parts[0][1:])
+            except ValueError:
+                continue
+            tag = parts[1]
+            msg = parts[2] if len(parts) > 2 else ""
+            out_queue.put((node_id, tag, msg))
 
 # ── Pico serial thread ────────────────────────────────────────────────────────
 
@@ -182,22 +203,29 @@ def _handle_user_command(raw: str, ser, sweep: AutoSweep) -> bool:
             "  1..5          ping one node\n"
             "  all           broadcast ping\n"
             "  ping <n|all>  explicit ping\n"
+            "  run all <steps> <dir> <hz>   broadcast motor RUN\n"
+            "  run <n> <steps> <dir> <hz>    unicast motor RUN\n"
+            "  jog all <dir> <hz>            broadcast motor JOG\n"
+            "  jog <n> <dir> <hz>            unicast motor JOG\n"
+            "  bench                         scripted parallel motor test\n"
+            "  wave [all|1-4] [steps] [hz]   back/forth (def all 1000 @ 500; dir 1/0)\n"
             "  auto [ms]     start auto-sweep\n"
-            "  stop          stop auto-sweep\n"
-            "  status        per-node counters\n"
+            "  stop          stop motors + auto-sweep\n"
+            "  status        per-node counters + motor state\n"
             "  help          this list\n"
             "  q / quit      exit"
         )
         return True
 
     if cmd == "status":
-        print(f"\r{'Node':>5}  {'seen':>6}  {'ok':>6}  {'bad':>6}  {'ignored':>8}  last_seen")
+        print(f"\r{'Node':>5}  {'seen':>6}  {'ok':>6}  {'bad':>6}  "
+              f"{'ignored':>8}  {'motor':>8}  last_seen")
         for nid in range(1, 6):
             st = _stats[nid]
             age = f"{time.time() - st.last_seen:.1f}s ago" if st.seen else "never"
             colour = _node_colour(nid)
             print(f"{colour}  J{nid}  {str(st.seen):>6}  {st.ok:>6}  "
-                  f"{st.bad:>6}  {st.ignored:>8}  {age}{_RESET}")
+                  f"{st.bad:>6}  {st.ignored:>8}  {st.motor_state:>8}  {age}{_RESET}")
         return True
 
     if cmd in ("1","2","3","4","5"):
@@ -222,6 +250,41 @@ def _handle_user_command(raw: str, ser, sweep: AutoSweep) -> bool:
             print("[hub] no Pico connected")
         return True
 
+    if cmd.startswith("run "):
+        if ser:
+            _send_to_pico(ser, cmd)
+        else:
+            print("[hub] no Pico connected")
+        return True
+
+    if cmd.startswith("jog "):
+        if ser:
+            _send_to_pico(ser, cmd)
+        else:
+            print("[hub] no Pico connected")
+        return True
+
+    if cmd.startswith("hold "):
+        if ser:
+            _send_to_pico(ser, cmd)
+        else:
+            print("[hub] no Pico connected")
+        return True
+
+    if cmd == "bench":
+        if ser:
+            _send_to_pico(ser, "bench")
+        else:
+            print("[hub] no Pico connected")
+        return True
+
+    if cmd == "wave" or cmd.startswith("wave "):
+        if ser:
+            _send_to_pico(ser, cmd)
+        else:
+            print("[hub] no Pico connected")
+        return True
+
     if cmd.startswith("auto"):
         rest = cmd[4:].strip()
         if rest:
@@ -238,7 +301,11 @@ def _handle_user_command(raw: str, ser, sweep: AutoSweep) -> bool:
 
     if cmd == "stop":
         sweep.active = False
-        print("[hub] auto-sweep stopped")
+        if ser:
+            _send_to_pico(ser, "stop")
+            print("[hub] motor STOP sent; auto-sweep stopped")
+        else:
+            print("[hub] auto-sweep stopped (no Pico — cannot send motor STOP)")
         return True
 
     if cmd:
@@ -248,11 +315,37 @@ def _handle_user_command(raw: str, ser, sweep: AutoSweep) -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def _find_pico_port() -> "str | None":
-    """Heuristic: return first /dev/ttyACM* that exists."""
+    """Return Pico USB serial port; skip Espressif ESP32-C3 CDC devices."""
+    import glob
+
+    for pattern in (
+        "/dev/serial/by-id/*Pico*",
+        "/dev/serial/by-id/*RP2040*",
+        "/dev/serial/by-id/*Raspberry*",
+    ):
+        for by_id in sorted(glob.glob(pattern)):
+            try:
+                return os.path.realpath(by_id)
+            except OSError:
+                continue
+
+    esp_ports: set[str] = set()
+    for by_id in glob.glob("/dev/serial/by-id/usb-Espressif_*"):
+        try:
+            esp_ports.add(os.path.realpath(by_id))
+        except OSError:
+            continue
+
     for i in range(8):
         p = f"/dev/ttyACM{i}"
-        if os.path.exists(p):
-            return p
+        if not os.path.exists(p):
+            continue
+        try:
+            if os.path.realpath(p) in esp_ports:
+                continue
+        except OSError:
+            pass
+        return p
     return None
 
 
@@ -318,8 +411,11 @@ def main() -> None:
     # Use non-blocking stdin reads so the event loop can still drain the queue
     import select
 
+    interactive = sys.stdin.isatty()
+
     try:
-        print("> ", end="", flush=True)
+        if interactive:
+            print("> ", end="", flush=True)
         while True:
             # ── Drain UDP / Pico event queue ──────────────────────────────────
             try:
@@ -343,13 +439,17 @@ def main() -> None:
             if sweep_cmd and ser:
                 _send_to_pico(ser, sweep_cmd)
 
-            # ── Non-blocking stdin ────────────────────────────────────────────
-            rlist, _, _ = select.select([sys.stdin], [], [], 0.05)
-            if rlist:
-                raw = sys.stdin.readline()
-                if not _handle_user_command(raw, ser, sweep):
-                    break
-                print("> ", end="", flush=True)
+            # ── Non-blocking stdin (interactive terminal only) ─────────────────
+            if interactive:
+                rlist, _, _ = select.select([sys.stdin], [], [], 0.05)
+                if rlist:
+                    raw = sys.stdin.readline()
+                    if raw:
+                        if not _handle_user_command(raw, ser, sweep):
+                            break
+                        print("> ", end="", flush=True)
+            else:
+                time.sleep(0.05)
 
     except KeyboardInterrupt:
         pass

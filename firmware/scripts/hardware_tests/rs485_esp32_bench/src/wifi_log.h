@@ -20,7 +20,9 @@ bool WifiLogBegin(uint8_t node_id);
 // Returns true if WiFi is currently connected.
 bool WifiLogConnected();
 
-// Printf-style log send.  Silently drops if WiFi is not ready.
+// Printf-style log send.  Silently no-ops only if WiFi is down.
+// High-rate RX MOVE/HB lines are coalesced (e.g. "MOVEx12 last=...") and
+// batched into multi-line UDP datagrams — no silent rate-limit drops.
 // tag: short uppercase tag, e.g. "BOOT", "RX", "ERR"
 void WifiLog(const char* tag, const char* fmt, ...);
 
