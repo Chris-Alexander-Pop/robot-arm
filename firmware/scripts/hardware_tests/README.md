@@ -308,6 +308,71 @@ There is no dedicated shell script for this test because it requires interaction
 
 ---
 
+### `run_rs485_pico.sh` — RS-485 Pico master (multi-node bench)
+
+**What it does:**
+Builds and flashes the Pico master firmware (`rs485_pico/`) then opens the USB serial monitor. The Pico drives an addressed ASCII ping protocol at 38400 baud. You type `1`–`5` or `ping all` to send `@N PING\r\n` frames; the targeted ESP32-C3 slave replies `@N ACK PING\r\n` and logs the event over WiFi.
+
+**Required hardware:**
+- Raspberry Pi Pico connected via USB
+- MAX485/MAX3485 module wired to GPIO0 (TX), GPIO1 (RX), GPIO2 (DE)
+- RS-485 bus connected to one or more ESP32-C3 slave nodes (see below)
+
+**Run:**
+```sh
+cd firmware/scripts/hardware_tests
+./run_rs485_pico.sh
+```
+
+**Full wiring and bring-up guide:** [`rs485_multi_node/README.md`](rs485_multi_node/README.md)
+
+---
+
+### `flash_rs485_esp32_nodes.sh` — Flash ESP32-C3 slave nodes (multi-node bench)
+
+**What it does:**
+Builds per-node firmware (`rs485_esp32_bench/`, envs `node_1`…`node_5`) and uploads each one interactively. Plug each ESP32-C3 in turn and press Enter when prompted. Each image has a unique `ROBOT_ARM_NODE_ID` baked in at compile time.
+
+**Required hardware:**
+- 1–5 ESP32-C3 boards connected via USB (one at a time)
+- `rs485_esp32_bench/src/wifi_config.h` filled in (copy from `.example`)
+
+**Run:**
+```sh
+cd firmware/scripts/hardware_tests
+./flash_rs485_esp32_nodes.sh            # interactive, prompts per node
+./flash_rs485_esp32_nodes.sh --node 3  # flash only node 3
+./flash_rs485_esp32_nodes.sh --all     # flash all without prompts
+```
+
+---
+
+### `run_rs485_log_hub.sh` — Host log aggregator (multi-node bench)
+
+**What it does:**
+Starts `rs485_log_hub.py` — a Python process that:
+- Listens on **UDP port 9000** for log datagrams from all five ESP32-C3 nodes simultaneously
+- Opens the Pico USB serial port and forwards interactive commands
+- Merges all node output to one colour-coded terminal view
+
+**Required hardware:**
+- PC and all ESP32-C3 boards on the same WiFi LAN
+- Pico connected via USB (optional — hub still shows node logs without it)
+
+**Run:**
+```sh
+cd firmware/scripts/hardware_tests
+./run_rs485_log_hub.sh                           # auto-detects Pico serial
+./run_rs485_log_hub.sh --pico-port /dev/ttyACM0  # explicit port
+```
+
+**Passing result:** Typing `2` at the `>` prompt produces exactly one
+`[J2|RX]` line; nodes J1/J3/J4/J5 stay silent.
+
+**Full guide:** [`rs485_multi_node/README.md`](rs485_multi_node/README.md)
+
+---
+
 ## Troubleshooting
 
 Run **`./check_nucleo_stlink.sh`** before any Nucleo upload. It prints whether SWD can reach the MCU.
