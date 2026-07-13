@@ -65,3 +65,7 @@ log/
 
 # PlatformIO: compile_commands.json from `pio run -t compiledb` (large, regenerated locally)
 firmware/stm32_core/compile_commands.json
+
+# Local bench credentials (never commit)
+firmware/scripts/hardware_tests/rs485_esp32_bench/src/wifi_config.h
+firmware/scripts/hardware_tests/rs485_bench.env
