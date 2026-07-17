@@ -58,6 +58,7 @@ jobs:
         with:
           name: renode-test-results
           path: simulation/renode/test-results
+          retention-days: 7
 
   software-behavioral-tests:
     runs-on: ubuntu-latest
