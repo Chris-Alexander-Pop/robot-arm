@@ -11,6 +11,26 @@ If you discover a security issue in project code or documentation, please open a
 clear description. For sensitive reports, use GitHub private vulnerability reporting
 if enabled on the repository.
 
+## Residual GitHub object cache (Wi-Fi config)
+
+`INDEX.md` item 1 was marked handled on 2026-08-04 after a history rewrite removed
+the credential from every reachable ref. On 2026-09-01 that was found to be
+incomplete: GitHub still serves the unreachable commit.
+
+| Item | Value |
+|---|---|
+| Commit | `e8d15149ffaf19f5f34801697ebe9fd1e0ffc72e` |
+| Blob | `3552d09047e00b8ad3dfc2c6a62c3ef535ac659d` |
+| Path | `firmware/scripts/hardware_tests/rs485_esp32_bench/src/wifi_config.h` |
+| Unauthenticated raw fetch | **HTTP 200** as of 2026-09-02 (re-checked this session; 743 bytes) |
+| Forks retaining objects | 0 |
+| Rotation | **NOT DONE BY AGENT — Chris must rotate** the WPA passphrase on the home router and reflash ESP32 benches |
+| GitHub Support | **DRAFTED, not filed** (draft lives outside this repo) |
+| Offline backup | `~/Engineering/Toys/robot-arm-pre-purge-backup.git` (no remotes; holds the dangling commit) |
+
+The passphrase is not repeated here. The SSID was removed from `HEAD` (env var
+`WIFI_SSID` in `bench_connect.sh`).
+
 ## Known limitations
 
 - **Serial command interface**: The STM32 firmware accepts motion commands over UART
