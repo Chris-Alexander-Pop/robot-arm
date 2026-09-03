@@ -373,6 +373,21 @@ cd firmware/scripts/hardware_tests
 
 ---
 
+### `bench_connect.sh` — Join the bench Wi-Fi and sync `LOG_HOST_IP`
+
+Connects this machine to the bench network and writes the wlan0 IPv4 address into the gitignored `rs485_esp32_bench/src/wifi_config.h`.
+
+**SSID:** set `WIFI_SSID` in the environment. If unset, the script uses the placeholder `YOUR_WIFI_SSID` (same token as `wifi_config.h.example`). Do not put a real SSID in this script.
+
+```sh
+export WIFI_SSID=your-bench-ssid   # gitignored local value; not committed
+cd firmware/scripts/hardware_tests
+./bench_connect.sh            # connect (if needed) and update IP
+./bench_connect.sh --status   # print current state, no changes
+```
+
+---
+
 ## Troubleshooting
 
 Run **`./check_nucleo_stlink.sh`** before any Nucleo upload. It prints whether SWD can reach the MCU.

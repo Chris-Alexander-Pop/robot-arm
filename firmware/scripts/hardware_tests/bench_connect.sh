@@ -12,7 +12,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WIFI_CONFIG="$SCRIPT_DIR/rs485_esp32_bench/src/wifi_config.h"
 
-SSID="CAP_P9"
+# Bench Wi-Fi SSID. Override with WIFI_SSID; default matches wifi_config.h.example.
+SSID="${WIFI_SSID:-YOUR_WIFI_SSID}"
 IFACE="wlan0"
 
 # ── Parse args ────────────────────────────────────────────────────────────────
