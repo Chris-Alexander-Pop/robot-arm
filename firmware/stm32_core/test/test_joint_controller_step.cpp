@@ -1,17 +1,7 @@
 // JointController::Step() behavior tests.
 //
-// Structure:
-//
-//   PASSING NOW: Tests that pass against the current no-op stub AND will
-//   continue to pass once Step() is correctly implemented.  These form the
-//   always-green regression baseline.
-//
-//   PENDING: Tests marked with ReportPending() that document the behavior a
-//   contributor MUST verify once they fill in Step().  They do NOT increment
-//   the failure counter today, so the native test binary still exits 0.
-//   Preconditions before tightening PENDING assertions:
-//     1. Implement the TODO loop in joint_controller.cpp.
-//     2. Initialise pid_[] with non-zero gains where needed (default ctor is kp=ki=kd=0).
+// Step() is P-only: kDefaultKp = 2.0F, Ki = 0, Kd = 0, velocity saturated at
+// kMaxSupervisorVelocityDegS = 120.0F (joint_controller.cpp).
 //
 // Run the full suite:
 //   cd firmware/stm32_core
@@ -24,24 +14,10 @@
 #include "drivers/stepper_driver.h"
 #include "test_harness.h"
 
-namespace {
-
-// Soft-check helper: prints the outcome without incrementing test.failures.
-// Use for tests that document TODO behavior not yet enforced by the stub.
-void ReportPending(bool condition, const char* description) {
-  if (condition) {
-    std::printf("  PENDING [already ok]: %s\n", description);
-  } else {
-    std::printf("  PENDING [TODO]: %s\n", description);
-  }
-}
-
-}  // namespace
-
 void run_joint_controller_step_tests(TestContext& test) {
 
   // =========================================================================
-  // PASSING NOW: Step() safety — must never corrupt state or crash
+  // Step() safety — must never corrupt state or crash
   // =========================================================================
 
   // Step() with a normal dt does not crash.
@@ -80,7 +56,7 @@ void run_joint_controller_step_tests(TestContext& test) {
   }
 
   // =========================================================================
-  // PASSING NOW: Step() must not corrupt the stored command
+  // Step() must not corrupt the stored command
   // =========================================================================
 
   {
@@ -106,7 +82,7 @@ void run_joint_controller_step_tests(TestContext& test) {
   }
 
   // =========================================================================
-  // PASSING NOW: Step() must not corrupt the stored measured state
+  // Step() must not corrupt the stored measured state
   // =========================================================================
 
   {
@@ -135,14 +111,11 @@ void run_joint_controller_step_tests(TestContext& test) {
   }
 
   // =========================================================================
-  // PASSING NOW + AFTER IMPL: zero error produces zero stepper velocity
+  // Zero error produces zero stepper velocity
   //
-  // When command and measured positions are both 0 (the defaults), the PID
-  // error is 0 for every joint.  PidController::Update(0, dt) returns 0
-  // regardless of gains, so SetJointVelocityDegS(joint, 0) should be called.
-  //
-  // Passes now:  stub is a no-op → stepper velocities stay at 0 (their init).
-  // Passes later: implemented Step() computes error=0 → vel=0 for all joints.
+  // When command and measured positions are both 0 (the defaults), P-error is
+  // 0 for every joint. PidController::Update(0, dt) returns 0 regardless of
+  // gains, so SetJointVelocityDegS(joint, 0) is called.
   // =========================================================================
 
   {
@@ -160,9 +133,7 @@ void run_joint_controller_step_tests(TestContext& test) {
   }
 
   // =========================================================================
-  // PASSING NOW + AFTER IMPL: equal command and measured → zero velocity
-  //
-  // Same guarantee but with non-zero, equal positions so error=0 explicitly.
+  // Equal command and measured → zero velocity
   // =========================================================================
 
   {
@@ -189,11 +160,8 @@ void run_joint_controller_step_tests(TestContext& test) {
   }
 
   // =========================================================================
-  // PASSING NOW: Step(dt=0) with any error must not call SetJointVelocityDegS
-  // with a nonzero value (PID rejects dt<=0 and returns 0).
-  //
-  // Passes now:  stub is a no-op → velocities stay 0.
-  // Passes later: implemented Step() calls PidController::Update(error, 0) → 0.
+  // Step(dt=0) with any error must not produce nonzero velocity
+  // (PID rejects dt<=0 and returns 0; Step also Reset()s).
   // =========================================================================
 
   {
@@ -213,17 +181,12 @@ void run_joint_controller_step_tests(TestContext& test) {
   }
 
   // =========================================================================
-  // PENDING: Behavior once Step() is implemented with non-zero PID gains.
-  //
-  // These soft checks document the contract but DO NOT fail the build.
-  // Preconditions before converting to hard test.Check() calls:
-  //   1. Fill in the TODO in joint_controller.cpp.
-  //   2. Give pid_[] non-zero gains where the test intends motion (kp>0 is enough for proportional smoke tests).
+  // P-only contract (kDefaultKp = 2.0F, kMaxSupervisorVelocityDegS = 120.0F)
+  // Integral growth is not implemented (Ki = 0); that test was deleted.
   // =========================================================================
 
-  std::printf("--- PENDING Step() implementation tests ---\n");
-
-  // PENDING: nonzero position error + positive kp → nonzero velocity
+  // Nonzero position error → saturated P velocity.
+  // error = 90, kp = 2 → 180, saturate to 120.
   {
     robot_arm::StepperDriver stepper;
     stepper.Init();
@@ -232,45 +195,15 @@ void run_joint_controller_step_tests(TestContext& test) {
     robot_arm::JointCommand cmd{};
     cmd.target_position_deg[0] = 90.0F;
     ctrl.SetCommand(cmd);
-    // measured stays at 0 → error = 90.0 for joint 0
 
     ctrl.Step(0.02F);
 
-    // With kp=1.0 and error=90, expected velocity = 90.0 deg/s.
-    // Currently fails because (a) Step() is a stub and (b) default kp=0.
-    const bool velocity_nonzero = std::fabs(stepper.joint_velocity_deg_s(0)) > 0.001F;
-    ReportPending(velocity_nonzero,
-      "nonzero error with kp>0 should produce nonzero stepper velocity [needs impl + gains]");
+    test.CheckFloatEq(120.0F, stepper.joint_velocity_deg_s(0),
+                      "error 90 deg with kp 2.0 should saturate at 120 deg/s");
   }
 
-  // PENDING: integral accumulates over multiple Step() calls with ki>0
-  {
-    robot_arm::StepperDriver stepper;
-    stepper.Init();
-    robot_arm::JointController ctrl(stepper);
-
-    robot_arm::JointCommand cmd{};
-    cmd.target_position_deg[0] = 10.0F;
-    ctrl.SetCommand(cmd);
-    // measured stays at 0 → sustained error = 10.0 for joint 0
-
-    const float dt = 0.01F;
-    float vel_first = 0.0F;
-    float vel_later = 0.0F;
-    for (int i = 0; i < 20; ++i) {
-      ctrl.Step(dt);
-      if (i == 0)  vel_first = stepper.joint_velocity_deg_s(0);
-      if (i == 19) vel_later = stepper.joint_velocity_deg_s(0);
-    }
-
-    // With ki>0 the integral grows each step so |vel_later| > |vel_first|.
-    // Currently fails because Step() is a stub.
-    const bool integral_grows = std::fabs(vel_later) > std::fabs(vel_first);
-    ReportPending(integral_grows,
-      "sustained error with ki>0 should cause growing velocity over multiple steps [needs impl + gains]");
-  }
-
-  // PENDING: negative error produces negative velocity
+  // Negative error produces negative velocity.
+  // error = -45, kp = 2 → -90 (below the cap).
   {
     robot_arm::StepperDriver stepper;
     stepper.Init();
@@ -279,17 +212,15 @@ void run_joint_controller_step_tests(TestContext& test) {
     robot_arm::JointCommand cmd{};
     cmd.target_position_deg[0] = -45.0F;
     ctrl.SetCommand(cmd);
-    // measured stays at 0 → error = -45.0
 
     ctrl.Step(0.02F);
 
-    // With kp>0 and error<0, velocity should be negative.
-    const bool velocity_negative = stepper.joint_velocity_deg_s(0) < -0.001F;
-    ReportPending(velocity_negative,
-      "negative position error with kp>0 should produce negative velocity [needs impl + gains]");
+    test.CheckFloatEq(-90.0F, stepper.joint_velocity_deg_s(0),
+                      "error -45 deg with kp 2.0 should command -90 deg/s");
   }
 
-  // PENDING: Step() calls SetJointVelocityDegS for ALL joints independently
+  // Step() commands every joint independently.
+  // error_j = (j+1)*10, vel_j = saturate(2 * error_j) → 20,40,60,80,100,120.
   {
     robot_arm::StepperDriver stepper;
     stepper.Init();
@@ -300,20 +231,13 @@ void run_joint_controller_step_tests(TestContext& test) {
       cmd.target_position_deg[j] = static_cast<float>(j + 1) * 10.0F;
     }
     ctrl.SetCommand(cmd);
-    // measured stays at 0 → each joint has a different non-zero error
 
     ctrl.Step(0.02F);
 
-    // With gains configured, each joint should receive a distinct nonzero velocity.
-    int nonzero_count = 0;
+    const float expected[] = {20.0F, 40.0F, 60.0F, 80.0F, 100.0F, 120.0F};
     for (int j = 0; j < robot_arm::kJointCount; ++j) {
-      if (std::fabs(stepper.joint_velocity_deg_s(j)) > 0.001F) {
-        ++nonzero_count;
-      }
+      test.CheckFloatEq(expected[j], stepper.joint_velocity_deg_s(j),
+                        "Step() should command P velocity for every joint with nonzero error");
     }
-    ReportPending(nonzero_count == robot_arm::kJointCount,
-      "Step() should command a nonzero velocity for every joint with nonzero error [needs impl + gains]");
   }
-
-  std::printf("--- end PENDING tests ---\n");
 }
