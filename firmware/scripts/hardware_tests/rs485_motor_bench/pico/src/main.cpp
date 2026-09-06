@@ -1,18 +1,19 @@
 // RS-485 motor bench master — Raspberry Pi Pico.
 //
 // USB serial commands (115200):
-//   run all <steps> <dir> <hz>   broadcast RUN to all nodes
-//   run <id> <steps> <dir> <hz>  unicast RUN
-//   stop / stop all              broadcast STOP
+//   run all <steps> <dir> <hz>   broadcast RUN to all RS-485 nodes
+//   run <id> <steps> <dir> <hz>  unicast RUN (1-4 bus, 0/j0 = local Pico)
+//   stop / stop all              stop bus + local J0
 //   jog all <dir> <hz>           broadcast JOG
-//   jog <id> <dir> <hz>          unicast JOG
-//   bench                        scripted parallel motor test
-//   wave [all|<id>] [steps] [hz] continuous fwd/rev (default all 1000 @ 500)
-//   ping <id|all>                comms sanity check
+//   jog <id> <dir> <hz>          unicast / local JOG
+//   bench                        scripted parallel RS-485 motor test
+//   wave [all|0|j0|1-4] [steps] [hz]  continuous fwd/rev
+//   ping <id|all>                comms sanity check (j0 acks locally)
 //   status / help
 
 #include <Arduino.h>
 #include "pinout.h"
+#include "motor_driver.h"
 #include "rs485_bench_config.h"
 #include "rs485_bench_protocol.h"
 #include "rs485_motor_protocol.h"
@@ -52,6 +53,10 @@ static uint32_t g_wave_steps  = 1000U;
 static uint32_t g_wave_hz     = 500U;
 static uint32_t g_wave_wait_until = 0U;
 static uint32_t g_wave_cycles = 0U;
+
+static bool IsLocalJ0(char dst) {
+    return dst == kJ0Addr;
+}
 
 static uint32_t WaveDwellMs() {
     // Motion time + small gap so nodes finish before the reverse command.
@@ -134,7 +139,66 @@ static bool BusSendHold(char dst, uint8_t dir, bool quiet) {
     return BusSendFrame(frame, len, quiet);
 }
 
+static void DispatchRun(char dst, uint32_t steps, uint8_t dir, uint32_t hz, bool quiet) {
+    if (IsLocalJ0(dst)) {
+        if (!MotorRun(steps, dir, hz)) {
+            Serial.println(F("[J0] RUN failed"));
+            return;
+        }
+        if (!quiet) {
+            Serial.print(F("[J0] RUN "));
+            Serial.print(steps);
+            Serial.print(F(" steps dir="));
+            Serial.print(dir);
+            Serial.print(F(" @ "));
+            Serial.print(hz);
+            Serial.println(F(" Hz"));
+        }
+        return;
+    }
+    BusSendRun(dst, steps, dir, hz, quiet);
+}
+
+static void DispatchJog(char dst, uint8_t dir, uint32_t hz, bool quiet) {
+    if (IsLocalJ0(dst)) {
+        if (!MotorJog(dir, hz)) {
+            Serial.println(F("[J0] JOG failed"));
+            return;
+        }
+        if (!quiet) {
+            Serial.print(F("[J0] JOG dir="));
+            Serial.print(dir);
+            Serial.print(F(" @ "));
+            Serial.print(hz);
+            Serial.println(F(" Hz"));
+        }
+        return;
+    }
+    BusSendJog(dst, dir, hz, quiet);
+}
+
+static void DispatchHold(char dst, uint8_t dir, bool quiet) {
+    if (IsLocalJ0(dst)) {
+        MotorHold(dir);
+        if (!quiet) {
+            Serial.print(F("[J0] HOLD dir="));
+            Serial.println(dir);
+        }
+        return;
+    }
+    BusSendHold(dst, dir, quiet);
+}
+
+static void DispatchStopAll() {
+    MotorStop();
+    BusSendStop(RS485_BENCH_ADDR_BROADCAST, false);
+}
+
 static void SendPing(char dst) {
+    if (IsLocalJ0(dst)) {
+        Serial.println(F("[J0] ACK PING  (local STEP/DIR on GP16/GP17)"));
+        return;
+    }
     char frame[RS485_BENCH_FRAME_MAX_LEN];
     const size_t len = BuildPingFrame(frame, sizeof(frame), dst);
     if (len > 0U) {
@@ -142,19 +206,50 @@ static void SendPing(char dst) {
     }
 }
 
+// Parse destination token: "all", "0", "j0", or "1"-"4".
+// Advances *arg_inout past the token on success.
+static bool ParseDstToken(const char** arg_inout, char* dst_out) {
+    const char* arg = *arg_inout;
+    while (*arg == ' ') {
+        ++arg;
+    }
+
+    if (strncmp(arg, "all", 3) == 0 && (arg[3] == '\0' || arg[3] == ' ')) {
+        *dst_out = RS485_BENCH_ADDR_BROADCAST;
+        arg += 3;
+        *arg_inout = arg;
+        return true;
+    }
+    if ((strncmp(arg, "j0", 2) == 0 && (arg[2] == '\0' || arg[2] == ' ')) ||
+        (arg[0] == '0' && (arg[1] == '\0' || arg[1] == ' '))) {
+        *dst_out = kJ0Addr;
+        arg += (arg[0] == 'j') ? 2 : 1;
+        *arg_inout = arg;
+        return true;
+    }
+    if (arg[0] >= '1' && arg[0] <= '4' && (arg[1] == '\0' || arg[1] == ' ')) {
+        *dst_out = arg[0];
+        ++arg;
+        *arg_inout = arg;
+        return true;
+    }
+    return false;
+}
+
 static void PrintHelp() {
     Serial.println(F("Commands:"));
-    Serial.println(F("  run all <steps> <dir> <hz>  — broadcast RUN"));
-    Serial.println(F("  run <id> <steps> <dir> <hz> — unicast RUN"));
-    Serial.println(F("  stop / stop all             — broadcast STOP"));
+    Serial.println(F("  run all <steps> <dir> <hz>  — broadcast RUN (RS-485)"));
+    Serial.println(F("  run <0|j0|1-4> <steps> <dir> <hz>"));
+    Serial.println(F("                              — 0/j0 = Pico GP16/GP17"));
+    Serial.println(F("  stop / stop all             — stop bus + local J0"));
     Serial.println(F("  jog all <dir> <hz>          — broadcast JOG"));
-    Serial.println(F("  jog <id> <dir> <hz>         — unicast JOG"));
+    Serial.println(F("  jog <0|j0|1-4> <dir> <hz>"));
     Serial.println(F("  hold all <0|1>              — steady DIR (multimeter)"));
-    Serial.println(F("  hold <id> <0|1>             — unicast HOLD"));
-    Serial.println(F("  bench                       — scripted parallel test"));
-    Serial.println(F("  wave [all|1-4] [steps] [hz] — back/forth (def all 1000 500)"));
+    Serial.println(F("  hold <0|j0|1-4> <0|1>"));
+    Serial.println(F("  bench                       — scripted RS-485 test"));
+    Serial.println(F("  wave [all|0|j0|1-4] [steps] [hz]"));
     Serial.println(F("                              dir 1=fwd, 0=rev; stop to halt"));
-    Serial.println(F("  ping <id|all>               — comms check"));
+    Serial.println(F("  ping <0|j0|1-4|all>         — comms check"));
     Serial.println(F("  status / help"));
 }
 
@@ -177,10 +272,17 @@ static void PrintStatus() {
         Serial.print(F(" hz="));
         Serial.print(g_wave_hz);
     }
+    Serial.print(F(" j0="));
+    Serial.print(MotorIsRunning() ? "run" : "idle");
+    if (MotorIsRunning()) {
+        Serial.print(F(" steps_done="));
+        Serial.print(MotorStepsCompleted());
+    }
     Serial.println();
 }
 
 static void StartBench() {
+    MotorStop();
     g_wave_active = false;
     g_bench_active = true;
     g_bench_phase = BenchPhase::CreepFwd;
@@ -198,6 +300,9 @@ static void StartWave(char dst, uint32_t steps, uint32_t hz) {
     }
     g_bench_active = false;
     g_bench_phase = BenchPhase::Idle;
+    if (!IsLocalJ0(dst)) {
+        MotorStop();
+    }
     g_wave_active = true;
     g_wave_dst = dst;
     g_wave_steps = steps;
@@ -206,7 +311,11 @@ static void StartWave(char dst, uint32_t steps, uint32_t hz) {
     g_wave_wait_until = 0U;
     g_wave_cycles = 0U;
     Serial.print(F("Wave started: dst="));
-    Serial.print(dst);
+    if (IsLocalJ0(dst)) {
+        Serial.print(F("j0"));
+    } else {
+        Serial.print(dst);
+    }
     Serial.print(F(" "));
     Serial.print(steps);
     Serial.print(F(" steps @ "));
@@ -224,7 +333,7 @@ static void WaveTick() {
         return;
     }
 
-    BusSendRun(g_wave_dst, g_wave_steps, g_wave_dir, g_wave_hz, false);
+    DispatchRun(g_wave_dst, g_wave_steps, g_wave_dir, g_wave_hz, false);
     if (g_wave_dir == 0U) {
         ++g_wave_cycles;
     }
@@ -307,18 +416,7 @@ static void BenchTick() {
 
 static bool ParseRunArgs(const char* arg, char* dst_out, uint32_t* steps,
                          uint8_t* dir, uint32_t* hz) {
-    while (*arg == ' ') {
-        ++arg;
-    }
-
-    if (strncmp(arg, "all", 3) == 0 && (arg[3] == '\0' || arg[3] == ' ')) {
-        *dst_out = RS485_BENCH_ADDR_BROADCAST;
-        arg += 3;
-    } else if (arg[0] >= '1' && arg[0] <= '4' &&
-               (arg[1] == '\0' || arg[1] == ' ')) {
-        *dst_out = arg[0];
-        ++arg;
-    } else {
+    if (!ParseDstToken(&arg, dst_out)) {
         return false;
     }
 
@@ -351,18 +449,7 @@ static bool ParseRunArgs(const char* arg, char* dst_out, uint32_t* steps,
 }
 
 static bool ParseJogArgs(const char* arg, char* dst_out, uint8_t* dir, uint32_t* hz) {
-    while (*arg == ' ') {
-        ++arg;
-    }
-
-    if (strncmp(arg, "all", 3) == 0 && (arg[3] == '\0' || arg[3] == ' ')) {
-        *dst_out = RS485_BENCH_ADDR_BROADCAST;
-        arg += 3;
-    } else if (arg[0] >= '1' && arg[0] <= '4' &&
-               (arg[1] == '\0' || arg[1] == ' ')) {
-        *dst_out = arg[0];
-        ++arg;
-    } else {
+    if (!ParseDstToken(&arg, dst_out)) {
         return false;
     }
 
@@ -386,18 +473,7 @@ static bool ParseJogArgs(const char* arg, char* dst_out, uint8_t* dir, uint32_t*
 }
 
 static bool ParseHoldArgs(const char* arg, char* dst_out, uint8_t* dir) {
-    while (*arg == ' ') {
-        ++arg;
-    }
-
-    if (strncmp(arg, "all", 3) == 0 && (arg[3] == '\0' || arg[3] == ' ')) {
-        *dst_out = RS485_BENCH_ADDR_BROADCAST;
-        arg += 3;
-    } else if (arg[0] >= '1' && arg[0] <= '4' &&
-               (arg[1] == '\0' || arg[1] == ' ')) {
-        *dst_out = arg[0];
-        ++arg;
-    } else {
+    if (!ParseDstToken(&arg, dst_out)) {
         return false;
     }
 
@@ -441,16 +517,13 @@ static void HandleCommand(const char* cmd) {
         uint32_t hz = 500U;
 
         if (*arg != '\0') {
-            if (strncmp(arg, "all", 3) == 0 &&
-                (arg[3] == '\0' || arg[3] == ' ')) {
-                dst = RS485_BENCH_ADDR_BROADCAST;
-                arg += 3;
-            } else if (arg[0] >= '1' && arg[0] <= '4' &&
-                       (arg[1] == '\0' || arg[1] == ' ')) {
-                dst = arg[0];
-                ++arg;
+            // Optional destination; if missing, first number is steps (legacy).
+            char try_dst = 0;
+            const char* after = arg;
+            if (ParseDstToken(&after, &try_dst)) {
+                dst = try_dst;
+                arg = after;
             }
-            // else: first token is steps (legacy: "wave 1000 500" = all)
 
             while (*arg == ' ') {
                 ++arg;
@@ -460,7 +533,7 @@ static void HandleCommand(const char* cmd) {
                 steps = static_cast<uint32_t>(strtoul(arg, &end, 10));
                 if (end == arg || steps == 0U) {
                     Serial.println(
-                        F("usage: wave [all|1-4] [steps] [hz]  (def: wave all 1000 500)"));
+                        F("usage: wave [all|0|j0|1-4] [steps] [hz]  (def: wave all 1000 500)"));
                     return;
                 }
                 arg = end;
@@ -471,7 +544,7 @@ static void HandleCommand(const char* cmd) {
                     hz = static_cast<uint32_t>(strtoul(arg, &end, 10));
                     if (end == arg || hz == 0U) {
                         Serial.println(
-                            F("usage: wave [all|1-4] [steps] [hz]  (def: wave all 1000 500)"));
+                            F("usage: wave [all|0|j0|1-4] [steps] [hz]  (def: wave all 1000 500)"));
                         return;
                     }
                 }
@@ -481,7 +554,7 @@ static void HandleCommand(const char* cmd) {
         return;
     }
     if (strcmp(cmd, "stop") == 0 || strcmp(cmd, "stop all") == 0) {
-        BusSendStop(RS485_BENCH_ADDR_BROADCAST, false);
+        DispatchStopAll();
         g_bench_active = false;
         g_bench_phase = BenchPhase::Idle;
         g_wave_active = false;
@@ -494,10 +567,10 @@ static void HandleCommand(const char* cmd) {
         uint8_t dir = 0;
         uint32_t hz = 0;
         if (!ParseRunArgs(cmd + 4, &dst, &steps, &dir, &hz)) {
-            Serial.println(F("usage: run all|<1-4> <steps> <dir> <hz>"));
+            Serial.println(F("usage: run all|<0|j0|1-4> <steps> <dir> <hz>"));
             return;
         }
-        BusSendRun(dst, steps, dir, hz, false);
+        DispatchRun(dst, steps, dir, hz, false);
         return;
     }
 
@@ -506,10 +579,10 @@ static void HandleCommand(const char* cmd) {
         uint8_t dir = 0;
         uint32_t hz = 0;
         if (!ParseJogArgs(cmd + 4, &dst, &dir, &hz)) {
-            Serial.println(F("usage: jog all|<1-4> <dir> <hz>"));
+            Serial.println(F("usage: jog all|<0|j0|1-4> <dir> <hz>"));
             return;
         }
-        BusSendJog(dst, dir, hz, false);
+        DispatchJog(dst, dir, hz, false);
         return;
     }
 
@@ -517,10 +590,10 @@ static void HandleCommand(const char* cmd) {
         char dst = 0;
         uint8_t dir = 0;
         if (!ParseHoldArgs(cmd + 5, &dst, &dir)) {
-            Serial.println(F("usage: hold all|<1-4> <0|1>"));
+            Serial.println(F("usage: hold all|<0|j0|1-4> <0|1>"));
             return;
         }
-        BusSendHold(dst, dir, false);
+        DispatchHold(dst, dir, false);
         return;
     }
 
@@ -529,12 +602,13 @@ static void HandleCommand(const char* cmd) {
         while (*arg == ' ') {
             ++arg;
         }
+        char dst = 0;
         if (strcmp(arg, "all") == 0) {
             SendPing(RS485_BENCH_ADDR_BROADCAST);
-        } else if (arg[0] >= '1' && arg[0] <= '4') {
-            SendPing(arg[0]);
+        } else if (ParseDstToken(&arg, &dst) && *arg == '\0') {
+            SendPing(dst);
         } else {
-            Serial.println(F("usage: ping <1-4|all>"));
+            Serial.println(F("usage: ping <0|j0|1-4|all>"));
         }
         return;
     }
@@ -555,6 +629,8 @@ void setup() {
     pinMode(kLedPin, OUTPUT);
     digitalWrite(kLedPin, LOW);
 
+    MotorBegin(kJ0StepPin, kJ0DirPin, kLedPin, kJ0MaxHz);
+
     Serial1Obj.begin(RS485_BENCH_BAUD);
 
     Serial.println();
@@ -563,6 +639,7 @@ void setup() {
     Serial.println(F("========================================="));
     Serial.print(F("  Bus baud: "));
     Serial.println(RS485_BENCH_BAUD);
+    Serial.println(F("  J0 local: GP16=STEP (pin 21), GP17=DIR (pin 22)"));
     Serial.println(F("  Type 'help' for commands."));
     Serial.println();
 }
@@ -584,6 +661,7 @@ void loop() {
         }
     }
 
+    MotorTick();
     BenchTick();
     WaveTick();
 }

@@ -24,6 +24,10 @@ ENA is hardwired enabled on the drivers. RS-485 DE+RE tied to GND on ESP nodes (
 
 Pico RS-485: GPIO0=TX, GPIO1=RX, GPIO2=DE (held HIGH, TX-only).
 
+**Local J0 (no ESP):** board silk **pin 21 = GP16 → PUL+/STEP**, **pin 22 = GP17 → DIR+**.
+Address as `0` or `j0` in the same commands (`run` / `jog` / `hold` / `wave` / `ping`).
+`all` is still RS-485 broadcast only; `stop` halts bus nodes and local J0.
+
 ## Setup
 
 1. Copy WiFi config:
@@ -53,15 +57,20 @@ Pico RS-485: GPIO0=TX, GPIO1=RX, GPIO2=DE (held HIGH, TX-only).
 | Command | Action |
 |:---|:---|
 | `ping all` | Comms check — all nodes should log RX |
+| `ping 0` / `ping j0` | Local Pico motor path (no bus) |
+| `run 0 100 1 50` | **J0 (Pico GP16/GP17):** 100 steps forward @ 50 steps/s |
+| `run j0 100 1 50` | Same as `run 0 …` |
 | `run 1 100 1 50` | Node 1 only: 100 steps forward @ 50 steps/s |
-| `run all 3200 1 500` | All motors: 3200 steps forward @ 500 steps/s |
-| `stop` | Emergency stop all motors |
-| `jog all 1 200` | All motors jog forward @ 200 steps/s until stop |
-| `bench` | Scripted test: creep → 1 revolution fwd/rev |
-| `wave` / `wave all` | All motors: 1000 steps @ 500 Hz, dir 1 then 0, forever |
+| `run all 3200 1 500` | All RS-485 motors: 3200 steps forward @ 500 steps/s |
+| `stop` | Emergency stop bus + local J0 |
+| `jog 0 1 200` | J0 jog forward @ 200 steps/s until stop |
+| `jog all 1 200` | All RS-485 motors jog forward @ 200 steps/s until stop |
+| `bench` | Scripted test: creep → 1 revolution fwd/rev (RS-485) |
+| `wave` / `wave all` | All RS-485 motors: 1000 steps @ 500 Hz, dir 1 then 0, forever |
+| `wave 0` / `wave j0` | Local J0 wave (same defaults) |
 | `wave 2` | Node 2 only (same defaults) |
 | `wave 2 1000 500` | Node 2: 1000 steps @ 500 Hz each way |
-| `wave all 2000 300` | All motors: 2000 steps @ 300 Hz |
+| `wave all 2000 300` | All RS-485 motors: 2000 steps @ 300 Hz |
 
 Direction flag: **`1` = forward, `0` = reverse** (not 2). `wave` always alternates 1 ↔ 0.
 
