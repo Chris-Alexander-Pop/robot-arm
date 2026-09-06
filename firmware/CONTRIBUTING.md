@@ -1,14 +1,14 @@
 # Firmware contributor guide
 
-This tree is deliberately layered for learning: **`JointController::Step`** and **`StepperDriver`** on the MCU are tutorial stubs ([`stm32_core/lib/control/src/joint_controller.cpp`](stm32_core/lib/control/src/joint_controller.cpp), [`stm32_core/lib/drivers/src/stepper_driver.cpp`](stm32_core/lib/drivers/src/stepper_driver.cpp)). Protocol maths, **`JointMotionLimits`**, and native unit tests ship as runnable references.
+This tree is deliberately layered for learning. **`JointController::Step`** is already **P-only** (`kDefaultKp = 2.0F`, Ki/Kd = 0, velocity cap 120 °/s in [`stm32_core/lib/control/src/joint_controller.cpp`](stm32_core/lib/control/src/joint_controller.cpp)). The **native** `StepperDriver` still only stores commanded velocity; the Arduino path uses AccelStepper ([`stm32_core/lib/drivers/src/stepper_driver.cpp`](stm32_core/lib/drivers/src/stepper_driver.cpp)). Protocol maths, **`JointMotionLimits`**, and native unit tests ship as runnable references.
 
 ## Tier 1 (begin here)
 
-Implement motion on hardware in this order:
+Hardware motion still to close:
 
-1. **`Step()`** — read [`joint_controller.cpp`](stm32_core/lib/control/src/joint_controller.cpp); wire `pid_[]`, saturation, then `stepper_driver_.SetJointVelocityDegS()`. Start **P-only**, add Ki/Kd cautiously once pulses look stable.
-2. **STEP/DIR** — follow the numbered **`TODO(contributor)`** checklist in **`stepper_driver.cpp`**, [`pinout.h`](stm32_core/src/pinout.h), PlatformIO **`stm32_core/platformio.ini`** (laurb9/StepperDriver, MIT, is already declared).
-3. **Soft limits / cable sanity** — `JointMotionLimits` + `ClampJointCommand` are implemented; practise tuning per joint (`SetMotionLimits`, `AlignLimitsToMeasured` after homing).
+1. **STEP/DIR on the MCU** — follow the numbered **`TODO(contributor)`** checklist in the native half of **`stepper_driver.cpp`**, [`pinout.h`](stm32_core/src/pinout.h), PlatformIO **`stm32_core/platformio.ini`**. AccelStepper (GPL-3.0 or commercial) already drives J1/J2 when `ARDUINO` is set; laurb9/StepperDriver (MIT) is declared for helpers.
+2. **Soft limits / cable sanity** — `JointMotionLimits` + `ClampJointCommand` are implemented; practise tuning per joint (`SetMotionLimits`, `AlignLimitsToMeasured` after homing).
+3. **Do not treat Ki/Kd as live** — they are 0. Adding integral/derivative is a later tuning job, not the current contract.
 
 Run [`firmware/scripts/test.sh`](scripts/test.sh) (`pio run -e native` + native harness) after each step.
 

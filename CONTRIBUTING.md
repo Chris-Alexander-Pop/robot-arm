@@ -6,7 +6,8 @@ repository; contributions are welcome but may be reviewed slowly.
 ## Where to start
 
 - **Firmware (STM32):** Read [`firmware/CONTRIBUTING.md`](firmware/CONTRIBUTING.md)
-  for the tiered learning scaffold and native test workflow.
+  for the native test workflow. `JointController::Step` is already P-only; remaining
+  `TODO(contributor)` markers are hardware STEP/DIR and later tiers.
 - **Tests:** See [`TESTING.md`](TESTING.md) for commands that mirror CI.
 - **Architecture:** Start at [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
