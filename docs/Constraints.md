@@ -34,10 +34,12 @@ Application constraints **are deliberately looser than the mechanical envelope**
 
 ### 1a. Torque — HARD
 
+**Gear-ratio authority.** Firmware uses 19.0 motor revs / joint rev at J1 and 15.0 at J2 (`kJ1MotorRevsPerJointRev`, `kJ2MotorRevsPerJointRev` in `firmware/stm32_core/lib/drivers/src/stepper_driver.cpp`). Physical pin/lobe counts are `[NEEDS MEASUREMENT]`. Safety-margin figures that assumed a twenty-to-one design target are not re-computed here.
+
 | Joint | Required Holding Torque (worst-case) | Motor Native Torque | Required Gear Ratio | Chosen Ratio | Safety Margin |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-| J1 (Base) | ~7.95 Nm | 2.0 Nm (NEMA 23) | ≥ 4× (static), ≥ 10× (dynamic) | 20:1 cycloidal | **4.0×** |
-| J2 (Shoulder) | ~7.95 Nm | 2.0 Nm (NEMA 23) | ≥ 10× (dynamic) | 20:1 cycloidal | **4.0×** |
+| J1 (Base) | ~7.95 Nm | 2.0 Nm (NEMA 23) | ≥ 4× (static), ≥ 10× (dynamic) | 19:1 firmware; physical `[NEEDS MEASUREMENT]` | `[NEEDS MEASUREMENT]` (old 4.0× used the superseded twenty-to-one target) |
+| J2 (Shoulder) | ~7.95 Nm | 2.0 Nm (NEMA 23) | ≥ 10× (dynamic) | 15:1 firmware; physical `[NEEDS MEASUREMENT]` | `[NEEDS MEASUREMENT]` (old 4.0× used the superseded twenty-to-one target) |
 | J3 (Elbow) | ~3.27 Nm | 0.80 Nm (NEMA 17) | ≥ 4.1× | **15:1 cycloidal** | **3.67×** |
 | J4 (Forearm) | ~0.015 Nm (inertial) | 0.42 Nm (NEMA 17) | ≥ 1× | **10:1 cycloidal** | **280×** |
 | J5/J6 (Wrist) | < 0.15 Nm | 0.14 Nm (NEMA 14) | ~1× | Direct | Small margin |

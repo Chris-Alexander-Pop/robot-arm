@@ -13,7 +13,7 @@ This document records the key design decisions for the 6-DOF robot arm, focusing
 
 ### 1a. Cycloidal Drives at J1–J4
 
-**Decision**: Use **3D-printable cycloidal drives** (PETG disk + hardened steel dowel ring pins) at all four driven joints (J1/J2 at 20:1, J3 at 15:1, J4 at 10:1).
+**Decision**: Use **3D-printable cycloidal drives** (PETG disk + hardened steel dowel ring pins) at all four driven joints. Firmware authority for J1/J2 is 19:1 and 15:1 (`kJ1MotorRevsPerJointRev = 19.0F`, `kJ2MotorRevsPerJointRev = 15.0F`); physical counts `[NEEDS MEASUREMENT]`. J3/J4 remain design-intent 15:1 and 10:1.
 
 **Alternatives Considered**:
 
@@ -23,7 +23,7 @@ This document records the key design decisions for the 6-DOF robot arm, focusing
 | Harmonic Drive | Near-zero backlash, compact | Extremely expensive (~$300+) | ✗ |
 | Worm Gear (3D printed) | Self-locking, cheap | High friction, low efficiency, no backdrivability | ✗ |
 | Timing Belt only (J3) | Cheap, no extra housing | 3:1 belt = 2.4 Nm — **below the 3.27 Nm requirement** | ✗ |
-| **Cycloidal Drive (3D printed + steel pins)** | Printable, 10–20:1 in one stage, high torque density, near-zero backlash, uniform BOM | Requires PTFE grease, careful tolerances, eccentric vibration must be managed | **✓** |
+| **Cycloidal Drive (3D printed + steel pins)** | Printable, single-stage ratios in the ten-to-twenty range, high torque density, near-zero backlash, uniform BOM | Requires PTFE grease, careful tolerances, eccentric vibration must be managed | **✓** |
 
 **Rationale**: The cycloidal drive achieves a high ratio in a package smaller than a fist. The ring gear pins are hardened steel M4 dowels — these cannot shear; only the PETG disk is consumable. Extending cycloidals to J3 and J4 resolves the torque shortfall (see `Calculations.md §1e`) and **unifies the entire drive system**: the same dowel pins, the same print profiles, and the same assembly procedure across all four joints, simplifying fabrication and spares.
 
@@ -33,11 +33,11 @@ This document records the key design decisions for the 6-DOF robot arm, focusing
 
 **Decision**: Use the **2.0 Nm NEMA 23** closed-loop kits as the base/shoulder motors.
 
-**Rationale**: After gearing, the effective output torque at J2 is 2.0 Nm × 20 = **40 Nm** — sufficient for the 0.5–1.0 kg payload target with a 5× safety factor. Going to NEMA 34 would provide more torque but:
+**Rationale**: Firmware J2 reduction is 15:1 (`kJ2MotorRevsPerJointRev`); physical `[NEEDS MEASUREMENT]`. Output torque at J2 is `[NEEDS MEASUREMENT]` — do not reuse the old 2.0 Nm × 20 = 40 Nm figure, which used a superseded twenty-to-one design target. Going to NEMA 34 would provide more torque but:
 - Larger, heavier, physically larger envelope (harder to integrate into the cycloidal housing)
 - Far more expensive
 - Drivers would need to operate at 5–8A, requiring a larger PSU
-- The 2.0 Nm motor with 20:1 gearing is already over-torqued relative to the PETG structural strength limit
+- Even at the firmware 15:1 (J2) / 19:1 (J1) values, PETG structural strength remains the likely limit; that comparison is unmeasured.
 
 ---
 
@@ -63,7 +63,7 @@ The worst-case torque at J3 is **3.27 Nm**. A 3:1 GT2 belt drive (the practical 
 - 15 pins is a smaller, lighter housing than the 20-pin J1/J2 design, appropriate for the NEMA 17
 - 15:1 keeps motor input speed at a moderate RPM for typical joint velocities (below the estimated 1116 RPM structural resonance threshold)
 
-**Trade-off accepted**: The cycloidal housing adds ~50–80g to Link 1 (upper arm), slightly increasing J2 load. At the 20:1 reduction on J2, the 40 Nm effective output absorbs this easily.
+**Trade-off accepted**: The cycloidal housing adds ~50–80g to Link 1 (upper arm), slightly increasing J2 load. Firmware J2 reduction is 15:1; whether that absorbs the extra mass is `[NEEDS MEASUREMENT]` (the old 40 Nm figure used a superseded twenty-to-one target).
 
 ---
 

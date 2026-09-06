@@ -7,6 +7,8 @@ It serves as the mathematical reasoning and validation behind engineering decisi
 
 This document contains the quantitative analysis that underpins hardware selection, gearing ratios, power budgeting, and link sizing decisions. All values should be treated as **design estimates** until validated via CAD and physical testing.
 
+**Gear-ratio authority.** Firmware uses `kJ1MotorRevsPerJointRev = 19.0F` and `kJ2MotorRevsPerJointRev = 15.0F` (`firmware/stm32_core/lib/drivers/src/stepper_driver.cpp`). Physical cycloid pin/lobe counts are `[NEEDS MEASUREMENT]`. Arithmetic below that still uses a twenty-to-one figure is a **design target, superseded by firmware** — do not treat those products as current controller values.
+
 ---
 
 ## 1. Torque Requirements
@@ -57,11 +59,15 @@ However, a robot arm doesn't just hold still — it must also **accelerate the l
 
 $$R_{design} = R_{min} \times SF = 3.98 \times 2.5 = \approx 10\times$$
 
-The chosen **cycloidal drive** provides a **20:1 to 30:1** ratio, giving a substantial safety margin. At 20:1, the effective output torque is:
+Firmware J1/J2 reductions are 19.0 and 15.0 motor revs per joint rev; physical `[NEEDS MEASUREMENT]`. Effective output torque at those ratios is `[NEEDS MEASUREMENT]`.
+
+#### Design target, superseded by firmware
+
+The original write-up assumed a **20:1 to 30:1** cycloidal range. At 20:1, the effective output torque arithmetic was:
 
 $$\tau_{output} = 2.0 \text{ Nm} \times 20 = \textbf{40 Nm}$$
 
-This provides **5× headroom** over the calculated worst-case, which accounts for: dynamic accelerations, friction within the cycloidal drive, link mass growth as the CAD is fleshed out, and future payload increases.
+This provided **5× headroom** over the calculated worst-case *under that superseded target*. Do not quote 40 Nm as the firmware-backed output.
 
 ### 1e. Elbow Joint (J3) — Cycloidal Drive Calculation
 
@@ -151,10 +157,14 @@ Where $M$ is the microstep divisor (2, 4, 8, 16, 32...).
 Before the gearbox, at 1/16 microstepping:
 $$\theta_{step\_raw} = \frac{1.8°}{16} = 0.1125° \text{ per microstep}$$
 
+Output resolution at the firmware J1 ratio (19.0 motor revs / joint rev) is `[NEEDS MEASUREMENT]` from that 0.1125° figure. Do not quote the 5.6 millidegree product below as the current controller resolution.
+
+#### Design target, superseded by firmware
+
 After a 20:1 cycloidal drive, the output resolution becomes:
 $$\theta_{output} = \frac{0.1125°}{20} = \textbf{0.0056°} \text{ = 5.6 millidegrees per microstep}$$
 
-This is approximately **64,000 microsteps per output revolution** — exceptional resolution for a desktop arm.
+This is approximately **64,000 microsteps per output revolution** — the arithmetic of the superseded twenty-to-one target, not a measured bench figure.
 
 ### 3b. Linear End-Effector Resolution
 
@@ -176,12 +186,16 @@ The cycloidal drive ratio is determined by:
 
 $$R = N_{pins}$$
 
-Where $N_{pins}$ is the number of ring gear pins. A typical desktop-scale design uses:
+Where $N_{pins}$ is the number of ring gear pins. Physical pin/lobe counts on the built joints are `[NEEDS MEASUREMENT]`. Firmware does not encode pin count; it encodes 19.0 (J1) and 15.0 (J2) motor revs per joint rev.
+
+#### Design target, superseded by firmware
+
+A typical desktop-scale design uses:
 
 - **24 pins** → 24:1 ratio
 - **20 pins** → 20:1 ratio (chosen for compactness with M4-sized dowel pins)
 
-The cycloidal disk has **19 lobes** (one fewer than the 20 pins), causing one complete rolling cycle to produce exactly 1/20th of an output revolution.
+The cycloidal disk has **19 lobes** (one fewer than the 20 pins), causing one complete rolling cycle to produce exactly 1/20th of an output revolution. That 20:1 identity is the original design target; it is not the firmware J2 value (15.0) and is unverified on hardware.
 
 ### 4b. Eccentric Offset
 
@@ -208,7 +222,11 @@ $$F_{imbalance} = m_{ecc} \times e \times \omega^2$$
 | 1000 RPM | 104.7 | **220 mN** | Noticeable — degrades end-effector accuracy during motion |
 | 2000 RPM | 209.4 | **880 mN** | Significant — must be mitigated at any ratio |
 
+#### Design target, superseded by firmware
+
 > **Context**: A 20:1 cycloidal drive outputs 1 revolution per 20 motor revolutions. To move a joint at 30°/s, the motor must spin at $30 \times 20 / 360 \times 60 \approx$ **100 RPM** — well in the low-concern zone for normal pick-and-place trajectories. Rapid slewing (180°/s output) would put motor at ~600 RPM — still acceptable with counterweighting.
+
+Firmware J1/J2 input RPM at a given output rate is `[NEEDS MEASUREMENT]` using 19.0 and 15.0, not the 100 RPM figure above.
 
 ### 5b. Counterweight Effectiveness
 
@@ -265,7 +283,7 @@ A NEMA 23 mounting bolt generates at most a few N·m of tightening torque → bo
 
 | Decision | Calculation-Driven Rationale |
 |:---|:---|
-| Cycloidal drives at J1/J2 (20:1) | Required 10× dynamic minimum; 20:1 gives 4× safety margin on 7.95 Nm load |
+| Cycloidal drives at J1/J2 (firmware 19:1 / 15:1; physical `[NEEDS MEASUREMENT]`) | Required 10× dynamic minimum. Do not reuse the old twenty-to-one 4×-margin product; remargin is `[NEEDS MEASUREMENT]`. |
 | Cycloidal drive at J3 (15:1) | Belt at 3:1 yielded 2.4 Nm < 3.27 Nm required; 15:1 cycloidal gives 12.0 Nm (3.67× margin) |
 | Cycloidal drive at J4 (10:1) | Torque demand is ~0.015 Nm; 10:1 chosen for resolution, damping, and manufacturing uniformity |
 | NEMA 23 at J1/J2 (2.0 Nm) | Only motor class with sufficient torque before gearing |
@@ -278,3 +296,9 @@ A NEMA 23 mounting bolt generates at most a few N·m of tightening torque → bo
 | Mean Well LRS-350-24 PSU | Covers 13.8A theoretical max with margin |
 | PETG for structure | 80°C Tg, excellent layer adhesion, validated heat-set shear strength |
 | 1/32 microstepping (J3/J4) | Further reduces per-step torque impulse → lower vibration excitation at mid-arm joints |
+
+#### Design target, superseded by firmware
+
+| Decision | Calculation-Driven Rationale |
+|:---|:---|
+| Cycloidal drives at J1/J2 (20:1) | Required 10× dynamic minimum; 20:1 gives 4× safety margin on 7.95 Nm load |

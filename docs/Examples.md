@@ -29,10 +29,10 @@ The AR4 is the most complete, well-documented desktop 6-DOF arm in the open-sour
 | Planetary gearboxes (metal, purchased) | 3D-printed cycloidal drives | AR4's gearboxes cost $80–150 each; cycloidals are ~$15 in materials |
 | NEMA 23 at J1/J2 | NEMA 23 at J1/J2 | ✅ Same motor class — AR4 validates this is the right tier |
 | Custom Arduino controller | STM32 + Raspberry Pi running ROS 2 | Similar two-tier split; better ecosystem on our side |
-| ~10:1 planetary reduction | ~20:1 cycloidal reduction | More reduction headroom gives this project more safety margin |
+| ~10:1 planetary reduction | firmware 19:1 (J1) / 15:1 (J2); physical `[NEEDS MEASUREMENT]` | More reduction than AR4's planetary; do not quote the old twenty-to-one design target |
 | 2kg payload | 0.5–1.0 kg target | AR4 achieves 2kg; our softer gearing limits us — acceptable for desktop use |
 
-**Key Takeaway**: The AR4 BOM is a useful sanity-check. If their gear ratio is 10:1 for a 2kg payload, our 20:1 ratio for a 0.5kg payload is **very conservatively over-engineered** — which is correct for a first build.
+**Key Takeaway**: The AR4 BOM is a useful sanity-check. If their gear ratio is 10:1 for a 2kg payload, this project's firmware J1/J2 reductions (19:1 / 15:1; physical `[NEEDS MEASUREMENT]`) are still more reduction than AR4 for a 0.5kg payload target. The old twenty-to-one "over-engineered" claim is a superseded design-target talking point, not a measured margin.
 
 ---
 
@@ -130,7 +130,7 @@ The UR5e is the professional baseline. It defines what the architecture of a mod
 
 | UR5e Design Decision | This Project's Approximation | Why We Can't Fully Match It |
 |:---|:---|:---|
-| Harmonic drive at every joint (~50:1) | Cycloidal at J1/J2 (~20:1), belt at J3 | Harmonic drives cost $300–$800 each |
+| Harmonic drive at every joint (~50:1) | Cycloidal at J1/J2 (firmware 19:1 / 15:1; physical `[NEEDS MEASUREMENT]`) | Harmonic drives cost $300–$800 each |
 | Brushless servo motors at every joint | Closed-loop steppers at J1–J4, open-loop at J5/J6 | True servos are far more expensive |
 | ±0.03mm repeatability | ±0.5–1.0mm target | PETG compliance, belt stretch, cycloidal play |
 | Aluminum link structure | 3D-printed PETG | Weight vs. cost trade-off |

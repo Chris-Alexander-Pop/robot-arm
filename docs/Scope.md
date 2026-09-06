@@ -40,12 +40,14 @@ The system is divided into five domains: **Mechanical**, **Firmware**, **Softwar
 
 ### 2a. Hardware & Mechanical
 
+**Gear-ratio authority.** The STM32 J1/J2 path uses `kJ1MotorRevsPerJointRev = 19.0F` and `kJ2MotorRevsPerJointRev = 15.0F` in `firmware/stm32_core/lib/drivers/src/stepper_driver.cpp`. Those constants are what the controller divides by. Physical cycloid pin/lobe counts are `[NEEDS MEASUREMENT]`. A 20-to-1 design target appears in older calculation notes; it is not the firmware value.
+
 **Actuators & Drivers** (three motor tiers to balance torque and weight):
 
 | Joint | Name | Motor | Driver | Gearing | Notes |
 |:---:|:---|:---|:---|:---|:---|
-| J1 | Base Rotation | NEMA 23 (2.0 Nm) | CL57T closed-loop | Cycloidal 20:1 | → 40 Nm effective; twin-disk |
-| J2 | Shoulder Pitch | NEMA 23 (2.0 Nm) | CL57T closed-loop | Cycloidal 20:1 | Critical torque joint; twin-disk |
+| J1 | Base Rotation | NEMA 23 (2.0 Nm) | CL57T closed-loop | Cycloidal 19:1 (firmware) | Physical `[NEEDS MEASUREMENT]`; twin-disk |
+| J2 | Shoulder Pitch | NEMA 23 (2.0 Nm) | CL57T closed-loop | Cycloidal 15:1 (firmware) | Physical `[NEEDS MEASUREMENT]`; twin-disk |
 | J3 | Elbow Pitch | NEMA 17 (80 Ncm) | CL42T closed-loop | Cycloidal 15:1 | → 12 Nm; resolves torque shortfall |
 | J4 | Forearm Twist | NEMA 17 (42 Ncm) | CL42T closed-loop | Cycloidal 10:1 | Resolution + damping; → 4.2 Nm |
 | J5 | Wrist Pitch | NEMA 14 (14 Ncm) | TMC2209 open-loop | Direct | Ultra-lightweight |
@@ -54,7 +56,7 @@ The system is divided into five domains: **Mechanical**, **Firmware**, **Softwar
 **Power Supply**: Mean Well LRS-350-24 (350W, 24V, 14.6A) — sized for the 13.8A peak theoretical draw of all 6 motors.
 
 **Key Components**:
-- **Cycloidal drives (J1–J4)**: 3D-printed PETG disks + hardened steel dowel pins (ring teeth) + 608ZZ eccentric cam bearings + 6804/6806/6808 thin-section output bearings. Ratios: 20:1 (J1/J2), 15:1 (J3), 10:1 (J4).
+- **Cycloidal drives (J1–J4)**: 3D-printed PETG disks + hardened steel dowel pins (ring teeth) + 608ZZ eccentric cam bearings + 6804/6806/6808 thin-section output bearings. Ratios in firmware for J1/J2: 19:1 and 15:1 (`kJ1MotorRevsPerJointRev`, `kJ2MotorRevsPerJointRev`); physical `[NEEDS MEASUREMENT]`. Design intent for J3/J4 remains 15:1 and 10:1 (no firmware constants yet).
 - **Counterweights (J1–J4)**: Second 608ZZ on the rear motor shaft at 180°, cancelling eccentric imbalance at all speeds.
 - **Twin-disk design (J1/J2)**: Two cycloidal disks 180° out of phase, cancelling torque ripple and axial forces.
 - **74HC245**: Logic level shifter (3.3V STM32 → 5V for industrial CL57T/CL42T drivers)
@@ -131,7 +133,7 @@ The hardware phases below (budget-driven) are interleaved with the application-d
 
 **Goal**: Prove the control chain and cycloidal drive geometry before committing to a full 6-axis build. Map directly to **Checkpoints A–C**.
 
-1. Assemble a **single-joint bench prototype**: 1× NEMA 23 + CL57T driver + one 20:1 cycloidal drive unit (with counterweight + twin-disk) — *Checkpoint A: "It moves"*
+1. Assemble a **single-joint bench prototype**: 1× NEMA 23 + CL57T driver + one cycloidal drive unit (firmware J1 ratio 19:1; physical `[NEEDS MEASUREMENT]`; with counterweight + twin-disk) — *Checkpoint A: "It moves"*
 2. Wire STM32 → 74HC245 → CL57T; verify reliable STEP/DIR command delivery — *Checkpoint A*
 3. Validate cycloidal drive under load: add measured weight, measure output angle vs. commanded angle, confirm counterweight eliminates vibration
 4. Wire UART between STM32 and Raspberry Pi; test the full command chain (Python script → ROS 2 → Pi → STM32 → motor)

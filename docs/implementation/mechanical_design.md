@@ -9,6 +9,8 @@ structural materials, and kinematic approach for the 6-DOF robot arm.
 
 The arm is designed for **desktop-scale pick-and-place operations**, targeting an estimated payload of **0.5 – 1.0 kg** at the end-effector. The total arm reach is targeted at **~500mm** (from shoulder to wrist) based on the link-length breakdown below. These targets will be validated in simulation before final hardware procurement.
 
+**Gear-ratio authority.** Firmware uses `kJ1MotorRevsPerJointRev = 19.0F` and `kJ2MotorRevsPerJointRev = 15.0F` in `firmware/stm32_core/lib/drivers/src/stepper_driver.cpp`. Physical pin/lobe counts are `[NEEDS MEASUREMENT]`. Effective-output-torque products that assumed twenty-to-one reduction are superseded.
+
 ---
 
 ## 2. Actuator Selection
@@ -17,8 +19,8 @@ The motor stack is split into three tiers based on joint position and torque req
 
 | Joint | Description | Motor | Driver | Torque | Gearing | Eff. Output Torque |
 |:---|:---|:---|:---|:---|:---|:---|
-| J1 | Base Rotation | NEMA 23 (2.0 Nm) | CL57T Closed-Loop | 2.0 Nm | Cycloidal 20:1 | **~40 Nm** |
-| J2 | Shoulder Pitch | NEMA 23 (2.0 Nm) | CL57T Closed-Loop | 2.0 Nm | Cycloidal 20:1 | **~40 Nm** |
+| J1 | Base Rotation | NEMA 23 (2.0 Nm) | CL57T Closed-Loop | 2.0 Nm | Cycloidal 19:1 (firmware) | `[NEEDS MEASUREMENT]` |
+| J2 | Shoulder Pitch | NEMA 23 (2.0 Nm) | CL57T Closed-Loop | 2.0 Nm | Cycloidal 15:1 (firmware) | `[NEEDS MEASUREMENT]` |
 | J3 | Elbow Pitch | NEMA 17 (80 Ncm) | CL42T Closed-Loop | 0.80 Nm | Cycloidal 15:1 | **~12 Nm** |
 | J4 | Forearm Twist | NEMA 17 (42 Ncm) | CL42T Closed-Loop | 0.42 Nm | Cycloidal 10:1 | **~4.2 Nm** |
 | J5 | Wrist Pitch | NEMA 14 (14 Ncm) | TMC2209 Open-Loop | 0.14 Nm | Direct | **0.14 Nm** |
@@ -40,12 +42,12 @@ A cycloidal drive is a compact, high-ratio speed reducer that achieves a large g
 - **Near-Zero Backlash**: The disk is always in contact with multiple pins simultaneously — no gear mesh "slop".
 - **Load Shared Across Many Pins**: Force is distributed across ~half the pins at any moment, drastically reducing peak contact stress vs. a single-tooth mesh.
 
-**Ratio Selection per Joint:**
+**Ratio selection per joint** (CAD intent, not counted on hardware). Firmware J1/J2 constants are 19.0 and 15.0; physical `[NEEDS MEASUREMENT]`.
 
-| Joint | Pins (N) | Disk Lobes (N-1) | Ratio | Rationale |
+| Joint | Pins (N) CAD intent | Disk Lobes (N-1) CAD intent | Ratio in controller | Rationale |
 |:---:|:---:|:---:|:---:|:---|
-| J1 | 20 | 19 | 20:1 | Highest torque demand; maximum ratio |
-| J2 | 20 | 19 | 20:1 | Same as J1 — identical housing for simplicity |
+| J1 | `[NEEDS MEASUREMENT]` | `[NEEDS MEASUREMENT]` | 19:1 firmware | Highest torque demand |
+| J2 | `[NEEDS MEASUREMENT]` | `[NEEDS MEASUREMENT]` | 15:1 firmware | Not identical to J1 in firmware; do not assume a shared housing ratio |
 | J3 | 15 | 14 | 15:1 | Resolves belt shortfall; smaller housing fits NEMA 17 envelope |
 | J4 | 10 | 9 | 10:1 | Low torque demand; smallest housing, minimizes added mass |
 
@@ -75,7 +77,7 @@ $$F_{imbalance} = m_{ecc} \times e \times \omega^2$$
 - At **1000 RPM** → ω = 104.7 rad/s → F ≈ **220 mN** (noticeable, especially at end-effector)
 - At **2000 RPM** → ω = 209.4 rad/s → F ≈ **880 mN** (significant — unacceptable for precision tasks)
 
-High motor speeds on the *input* side of a 20:1 drive are common (output moves slowly, but motor spins fast). Normal operational input speeds of 300–600 RPM are expected for smooth trajectories.
+High motor speeds on the *input* side of a high-ratio cycloidal drive are common (output moves slowly, but motor spins fast). Normal operational input speeds of 300–600 RPM are expected for smooth trajectories. RPM at the firmware J1/J2 ratios for a given output rate is `[NEEDS MEASUREMENT]`.
 
 #### Mitigation Strategies (Priority Order)
 
