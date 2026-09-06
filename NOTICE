@@ -7,20 +7,34 @@ governed by separate terms:
 1. StepperDriver (Laurentiu Badea / laurb9) — MIT License.
    Linked by firmware via PlatformIO for STEP/DIR hardware tests and future StepperDriver.
 
-2. Renode — MIT License. Used in CI only (not vendored in this repository).
+2. AccelStepper (Mike McCauley / waspinator PlatformIO package) — GPL-3.0 or
+   commercial (Airspayce). Used by `firmware/stm32_core` J1/J2 STEP/DIR
+   (`#include <AccelStepper.h>` in `stepper_driver.cpp`). License text fetched
+   from https://github.com/waspinator/AccelStepper (LICENSE on master).
+   STM32 firmware binaries that link this library are subject to those terms.
+
+3. AltSoftSerial (Paul Stoffregen / PJRC) — MIT License (permission notice in
+   `AltSoftSerial.h`). Used by the Arduino RS-485 echo bench
+   (`firmware/scripts/hardware_tests/rs485_arduino`).
+
+4. Renode — MIT License. Used in CI only (not vendored in this repository).
    https://github.com/renode/renode
 
-3. ROS 2 Humble — multiple open-source licenses (via Docker base image in
+5. ROS 2 Humble — multiple open-source licenses (via Docker base image in
    `software/Dockerfile`). Used for development and testing; not vendored here.
 
-4. WireViz — GPL-3.0. Optional development tool for `hardware/wireviz/` YAML.
+6. WireViz — GPL-3.0. Optional development tool for `hardware/wireviz/` YAML.
 
-5. Datasheets — third-party documents, NOT in this repository (URLs only in
+7. Simulation Python packages (pinned in `simulation/requirements.txt`; not vendored):
+   numpy (BSD), matplotlib (matplotlib license), pytest (MIT).
+   `simulation/dh_solver.py` imports matplotlib at module load.
+
+8. Datasheets — third-party documents, NOT in this repository (URLs only in
    `hardware/datasheets/README.txt`). Not licensed under the project MIT License.
 
-6. SolidWorks files under `mechanical/sw-models/` — proprietary CAD format.
+9. SolidWorks files under `mechanical/sw-models/` — proprietary CAD format.
    Neutral exports (`.step`) are provided where applicable.
 
-7. MATLAB / Simulink — optional workflow described in documentation; trademarks
+10. MATLAB / Simulink — optional workflow described in documentation; trademarks
    of The MathWorks, Inc. No MathWorks binaries are distributed in this
    repository unless explicitly stated in a future release.
