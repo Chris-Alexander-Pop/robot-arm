@@ -12,7 +12,7 @@ First-time setup: [`./scripts/setup.sh`](scripts/setup.sh).
 | ROS / MoveIt behavioral | `./software/scripts/test.sh` (requires Docker) | `software-behavioral-tests` |
 | Simulation (Python) | `./simulation/scripts/test.sh` | `simulation-tests` |
 
-**Requirements:** PlatformIO (`pio`), Docker for ROS tests, Python 3.11+ for simulation.
+**Requirements:** PlatformIO (`pio`), Docker for ROS tests, Python 3.12+ for simulation.
 
 ## Firmware native tests
 

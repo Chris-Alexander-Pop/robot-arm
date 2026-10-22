@@ -62,7 +62,7 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/Design_Choices
 
 ## Quickstart (~10 minutes)
 
-**Prerequisites:** Git, Python 3.11+, [PlatformIO](https://platformio.org/) (`pio`), Docker (for ROS tests).
+**Prerequisites:** Git, Python 3.12+, [PlatformIO](https://platformio.org/) (`pio`), Docker (for ROS tests).
 
 ```bash
 git clone https://github.com/Chris-Alexander-Pop/robot-arm.git

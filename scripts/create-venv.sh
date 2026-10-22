@@ -10,6 +10,11 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)'; then
+  echo "Error: simulation needs Python 3.12 or newer ($(python3 --version 2>&1))." >&2
+  exit 1
+fi
+
 echo "Creating simulation virtual environment at $VENV_DIR"
 python3 -m venv "$VENV_DIR"
 

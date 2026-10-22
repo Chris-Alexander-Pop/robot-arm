@@ -3,7 +3,6 @@ cycler==0.12.1
 fonttools==4.66.0
 kiwisolver==1.5.1
 matplotlib==3.11.2
-# numpy 2.5+ requires Python >=3.12; CI and the documented floor stay on 3.11.
 numpy==2.5.3
 packaging==26.3
 pillow==12.3.0
