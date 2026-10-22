@@ -8,3 +8,9 @@ updates:
     directory: /simulation
     schedule:
       interval: monthly
+    # Keep simulation installable on CI's Python 3.11 floor.
+    ignore:
+      - dependency-name: "numpy"
+        versions: [">=2.5"]
+      - dependency-name: "contourpy"
+        versions: [">=1.4"]
